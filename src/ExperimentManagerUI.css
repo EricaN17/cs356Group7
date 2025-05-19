@@ -1,0 +1,208 @@
+:root {
+    --rich-black: #0D1B2A;
+    --oxford-blue: #1B263B;
+    --yinmn-blue: #415A77;
+    --silver-lake-blue: #778DA9;
+    --platinum: #E0E1DD;
+}
+
+body {
+    margin: 0;
+    background-color: var(--platinum);
+}
+
+.ui-wrapper {
+    font-family: sans-serif;
+    background-color: var(--platinum);
+    min-height: 100vh;
+}
+
+.ui-header {
+    background-color: var(--rich-black);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.ui-container {
+    padding: 2rem;
+}
+
+.ui-nav {
+    display: flex;
+    gap: 2rem;
+    background-color: var(--oxford-blue);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.ui-nav span {
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ui-nav .active {
+    border-bottom: 2px solid white;
+    font-weight: 700;
+}
+
+.ui-grid {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.ui-form-section {
+    background-color: var(--yinmn-blue);
+    color: white;
+    flex: 2;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.ui-encoder-section {
+    background-color: var(--silver-lake-blue);
+    color: white;
+    flex: 1;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.ui-form h2,
+.ui-encoder-section h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.ui-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.checkbox-box {
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    border-radius: 4px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox-check {
+    width: 12px;
+    height: 12px;
+    color: var(--rich-black);
+}
+
+.ui-select-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ui-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ui-select {
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    border: 1px solid #ccc;
+    background-color: white;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.ui-dropdown {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.ui-option {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.ui-option:hover {
+    background-color: var(--silver-lake-blue);
+    color: white;
+}
+
+.ui-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.ui-buttons button,
+.ui-log-button {
+    background-color: var(--oxford-blue);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ui-log-button {
+    margin-top: 2rem;
+    display: block;
+    width: 100%;
+}
+
+.ui-table-section {
+    margin-top: 3rem;
+    background-color: var(--platinum);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.ui-table-section h2 {
+    font-size: 1.1rem;
+    color: var(--oxford-blue);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.ui-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: white;
+}
+
+.ui-table thead tr {
+    background-color: var(--oxford-blue);
+}
+
+.ui-table th {
+    color: white;
+    font-weight: 600;
+}
+
+.ui-table td {
+    color: var(--rich-black);
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.ui-table td[colspan] {
+    color: #555;
+}
