@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'Example'
+const API_BASE_URL = '../services/ExperimentsService'
 export async function createExperiment(body){
     const response = await fetch(`${API_BASE_URL}/get`,{
         method:'POST',
@@ -7,6 +7,7 @@ export async function createExperiment(body){
             'Content-Type':'application/json',
         },
         body:JSON.stringify(body),
+
     });
 }
 
