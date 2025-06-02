@@ -45,7 +45,6 @@ export default function ExperimentManagerUI() {
     };
 
 
-
     const handleEncoderToggle = (encoder) => {
         setSelectedEncoders((prev) =>
             prev.includes(encoder)
@@ -63,6 +62,15 @@ export default function ExperimentManagerUI() {
         "OP (Slider)",
         "OP (Slider)"
     ];
+
+    const selectDropdownValues = {
+        bitDepth: ['8-bit', '10-bit', '12-bit'],
+        spatialResolution: ['Auto', '720p', '1080p', '4K'],
+        temporalResolution: ['24fps', '30fps', '60fps'],
+        encoding: ['Auto', 'HEVC', 'AVC', 'VP9'],
+        op1: ['Option 1A', 'Option 1B'],
+        op2: ['Option 2A', 'Option 2B'],
+    };
 
     return (
         <div className="ui-wrapper">
@@ -119,8 +127,12 @@ export default function ExperimentManagerUI() {
                                                         <Select.Portal>
                                                             <Select.Content className="ui-dropdown">
                                                                 <Select.Viewport>
-                                                                    <Select.Item value="Auto" className="ui-option">Auto</Select.Item>
-                                                                    <Select.Item value="Automat" className="ui-option">Automat</Select.Item>
+                                                                    {(selectDropdownValues[field] || []).map((option) => (
+                                                                        <Select.Item key={option} value={option} className="ui-option">
+                                                                            <Select.ItemText>{option}</Select.ItemText>
+                                                                            <Select.ItemIndicator>✔</Select.ItemIndicator>
+                                                                        </Select.Item>
+                                                                    ))}
                                                                 </Select.Viewport>
                                                             </Select.Content>
                                                         </Select.Portal>
