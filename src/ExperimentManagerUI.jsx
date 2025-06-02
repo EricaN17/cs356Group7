@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
-import * as ViewExperiments from './ViewExperiments';
+import ViewExperiments  from './ViewExperiments';
 import './ExperimentManagerUI.css';
+
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -34,6 +35,16 @@ export default function ExperimentManagerUI() {
     const handleFormChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
+
+    const handleRunExperiment = () => {
+        console.log("Run Experiment clicked");
+    };
+
+    const handleSaveConfig = () => {
+        console.log("Save Config clicked");
+    };
+
+
 
     const handleEncoderToggle = (encoder) => {
         setSelectedEncoders((prev) =>
