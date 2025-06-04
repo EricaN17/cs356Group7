@@ -64,6 +64,7 @@ export default function ExperimentManagerUI() {
     ];
 
     const selectDropdownValues = {
+        //when i have the data being loaded in through an API i will use this here, for now values are hardcoded
         bitDepth: ['8-bit', '10-bit', '12-bit'],
         spatialResolution: ['Auto', '720p', '1080p', '4K'],
         temporalResolution: ['24fps', '30fps', '60fps'],
