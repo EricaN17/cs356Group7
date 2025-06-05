@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
-import ViewExperiments  from './ViewExperiments';
+import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
-
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -15,7 +14,11 @@ export default function ExperimentManagerUI() {
         encoding: '',
         op1: '',
         op2: '',
+        QP: '',
+        mode: '',
+        networkCondition: ''
     });
+
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
 
@@ -28,6 +31,9 @@ export default function ExperimentManagerUI() {
             encoding: '',
             op1: '',
             op2: '',
+            QP: '',
+            mode: '',
+            networkCondition: ''
         });
         setSelectedEncoders([]);
     };
@@ -37,13 +43,12 @@ export default function ExperimentManagerUI() {
     };
 
     const handleRunExperiment = () => {
-        console.log("Run Experiment clicked");
+        console.log("Run Experiment clicked", formData, selectedEncoders);
     };
 
     const handleSaveConfig = () => {
-        console.log("Save Config clicked");
+        console.log("Save Config clicked", formData);
     };
-
 
     const handleEncoderToggle = (encoder) => {
         setSelectedEncoders((prev) =>
@@ -64,7 +69,6 @@ export default function ExperimentManagerUI() {
     ];
 
     const selectDropdownValues = {
-        //when i have the data being loaded in through an API i will use this here, for now values are hardcoded
         bitDepth: ['8-bit', '10-bit', '12-bit'],
         spatialResolution: ['Auto', '720p', '1080p', '4K'],
         temporalResolution: ['24fps', '30fps', '60fps'],
@@ -72,6 +76,15 @@ export default function ExperimentManagerUI() {
         op1: ['Option 1A', 'Option 1B'],
         op2: ['Option 2A', 'Option 2B'],
     };
+
+    const standardEncoderSelections = {
+        QP: ['22', '27', '32', '37'],
+        frameRate: ['24fps', '30fps', '60fps'],
+        resolution: ['720p', '1080p', '4K'],
+        mode: ['Intra Only', 'Low Delay', 'Random Access']
+    };
+
+    const isStandardEncoderSelected = selectedEncoders.some(enc => ['SVC', 'AVC', 'HEVC'].includes(enc));
 
     return (
         <div className="ui-wrapper">
@@ -131,7 +144,6 @@ export default function ExperimentManagerUI() {
                                                                     {(selectDropdownValues[field] || []).map((option) => (
                                                                         <Select.Item key={option} value={option} className="ui-option">
                                                                             <Select.ItemText>{option}</Select.ItemText>
-                                                                            <Select.ItemIndicator>✔</Select.ItemIndicator>
                                                                         </Select.Item>
                                                                     ))}
                                                                 </Select.Viewport>
@@ -142,6 +154,7 @@ export default function ExperimentManagerUI() {
                                             ))}
                                         </div>
                                     )}
+
                                     <div className="ui-buttons">
                                         <button onClick={handleRunExperiment}>Run Experiment</button>
                                         <button onClick={handleSaveConfig}>Save Config</button>
@@ -150,10 +163,11 @@ export default function ExperimentManagerUI() {
                                 </div>
                             </div>
 
+
                             <div className="ui-encoder-section">
                                 <h3>Encoder Selection</h3>
                                 <div className="ui-toggle-group">
-                                    {['AVC', 'SVC', 'SHVC', 'HEVC', 'New encoder to be added'].map((encoder) => (
+                                    {['SVC', 'AVC', 'HEVC'].map((encoder) => (
                                         <label key={encoder} className="ui-checkbox">
                                             <Checkbox.Root
                                                 className="checkbox-box"
@@ -168,6 +182,72 @@ export default function ExperimentManagerUI() {
                                         </label>
                                     ))}
                                 </div>
+
+                                {isStandardEncoderSelected && (
+                                    <div className="ui-select-grid">
+                                        <label className="ui-label">
+                                            Quantization Parameter (QP)
+                                            <Select.Root
+                                                value={formData.QP}
+                                                onValueChange={(val) => handleFormChange('QP', val)}
+                                            >
+                                                <Select.Trigger className="ui-select">
+                                                    <Select.Value placeholder="Select QP" />
+                                                </Select.Trigger>
+                                                <Select.Content>
+                                                    <Select.Viewport>
+                                                        {standardEncoderSelections.QP.map((option) => (
+                                                            <Select.Item key={option} value={option} className="ui-option">
+                                                                <Select.ItemText>{option}</Select.ItemText>
+                                                            </Select.Item>
+                                                        ))}
+                                                    </Select.Viewport>
+                                                </Select.Content>
+                                            </Select.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Encoder Mode
+                                            <Select.Root
+                                                value={formData.mode}
+                                                onValueChange={(val) => handleFormChange('mode', val)}
+                                            >
+                                                <Select.Trigger className="ui-select">
+                                                    <Select.Value placeholder="Select Mode" />
+                                                </Select.Trigger>
+                                                <Select.Content>
+                                                    <Select.Viewport>
+                                                        {standardEncoderSelections.mode.map((option) => (
+                                                            <Select.Item key={option} value={option} className="ui-option">
+                                                                <Select.ItemText>{option}</Select.ItemText>
+                                                            </Select.Item>
+                                                        ))}
+                                                    </Select.Viewport>
+                                                </Select.Content>
+                                            </Select.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Network Condition
+                                            <Select.Root
+                                                value={formData.networkCondition}
+                                                onValueChange={(val) => handleFormChange('networkCondition', val)}
+                                            >
+                                                <Select.Trigger className="ui-select">
+                                                    <Select.Value placeholder="Select Network" />
+                                                </Select.Trigger>
+                                                <Select.Content>
+                                                    <Select.Viewport>
+                                                        <Select.Item value="Low Bandwidth" className="ui-option">
+                                                            <Select.ItemText>Low Bandwidth (1 Mbps, 50ms)</Select.ItemText>
+                                                        </Select.Item>
+                                                    </Select.Viewport>
+                                                </Select.Content>
+                                            </Select.Root>
+                                        </label>
+                                    </div>
+                                )}
+
                                 <button className="ui-log-button">Error & Log Panel</button>
                             </div>
                         </>
@@ -179,30 +259,3 @@ export default function ExperimentManagerUI() {
         </div>
     );
 }
-
-
-{/*                <div className="ui-table-section">*/}
-{/*                    <h2>Experiments Dashboard (Main Table View)</h2>*/}
-{/*                    <table className="ui-table">*/}
-{/*                        <thead>*/}
-{/*                        <tr>*/}
-{/*                            <th>ID</th>*/}
-{/*                            <th>Name</th>*/}
-{/*                            <th>Encoder Used</th>*/}
-{/*                            <th>Duration</th>*/}
-{/*                            <th>Status</th>*/}
-{/*                            <th>Output Link</th>*/}
-{/*                            <th>Log</th>*/}
-{/*                        </tr>*/}
-{/*                        </thead>*/}
-{/*                        <tbody>*/}
-{/*                        <tr>*/}
-{/*                            <td colSpan={7}>No experiments yet</td>*/}
-{/*                        </tr>*/}
-{/*                        </tbody>*/}
-{/*                    </table>*/}
-{/*            /!*    </div>*!/*/}
-{/*//             </div>*/}
-{/*//         </div>*/}
-{/*//     );*/}
-{/*// }*/}
