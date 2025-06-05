@@ -1,14 +1,36 @@
 /* eslint-disable no-unused-vars */
 
 
-const {createExperiment, updateExperiment, deleteExperiment} = require("../ExpCRUDAxios");
+const {listExperiments,getExperiment,createExperiment, updateExperiment, deleteExperiment} = require("../ExpCRUDAxios");
 const {rejectResponse} = require("./Service");
 
-
-
+const listExperimentsCall = () => new Promise(
+    async (resolve, reject) => {
+        try {
+          resolve(listExperiments());
+        } catch (e) {
+          reject(rejectResponse(
+            e.message || 'Invalid input',
+            e.status || 405,
+          ));
+        }
+    }
+);
+const getExperimentCall = ({ experimentId }) => new Promise(
+    async (resolve, reject) => {
+        try {
+          resolve(getExperiment({
+            experimentId,
+          }));
+        } catch (e) {
+          reject(rejectResponse(
+            e.message || 'Invalid input',
+            e.status || 405,
+          ))
+        }
+    }
+);
 const createExperimentCall = ({ experimentInput }) => new Promise(
-
-
   async (resolve, reject) => {
     try {
       resolve(createExperiment({
@@ -53,6 +75,8 @@ const updateExperimentCall = ({ experimentId, experimentInput }) => new Promise(
 );
 
 module.exports = {
+  listExperimentsCall,
+  getExperimentCall,
   createExperimentCall,
   deleteExperimentCall,
   updateExperimentCall,
