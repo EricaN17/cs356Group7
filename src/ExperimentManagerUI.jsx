@@ -4,10 +4,19 @@ import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
+import './backend_modules/services/ExperimentsService.js'
+import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
 
 export default function ExperimentManagerUI() {
+
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
+        id: '',
+        OwnerId: '',
+        createdAt: '',
+        description: '',
+        experimentName: '',
+        status: '',
         bitDepth: '',
         spatialResolution: '',
         temporalResolution: '',
@@ -16,7 +25,25 @@ export default function ExperimentManagerUI() {
         op2: '',
         QP: '',
         mode: '',
-        networkCondition: ''
+        networkCondition: '',
+        Video: "",
+        Duration: "",
+        Frames_to_Encode: '',
+        ResWidth: '',
+        ResHeight: '',
+        OutputFile: '',
+        Encoder: '',
+        Bitrate: '',
+        YuvFormat: '',
+        EncoderMode: '',
+        Quality: '',
+        Depth: '',
+        Gamut: '',
+        QPISlice: '',
+        QPPSlice: '',
+        QPBSlice: '',
+        IntraPeriod: '',
+        BFrames: '',
     });
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
@@ -25,6 +52,12 @@ export default function ExperimentManagerUI() {
     const handleReset = () => {
         setUseJsonConfig(false);
         setFormData({
+            id: '',
+            OwnerId: '',
+            createdAt: '',
+            description: '',
+            experimentName: '',
+            status: '',
             bitDepth: '',
             spatialResolution: '',
             temporalResolution: '',
@@ -33,7 +66,25 @@ export default function ExperimentManagerUI() {
             op2: '',
             QP: '',
             mode: '',
-            networkCondition: ''
+            networkCondition: '',
+            Video: "",
+            Duration: "",
+            Frames_to_Encode: '',
+            ResWidth: '',
+            ResHeight: '',
+            OutputFile: '',
+            Encoder: '',
+            Bitrate: '',
+            YuvFormat: '',
+            EncoderMode: '',
+            Quality: '',
+            Depth: '',
+            Gamut: '',
+            QPISlice: '',
+            QPPSlice: '',
+            QPBSlice: '',
+            IntraPeriod: '',
+            BFrames: '',
         });
         setSelectedEncoders([]);
     };
@@ -44,10 +95,12 @@ export default function ExperimentManagerUI() {
 
     const handleRunExperiment = () => {
         console.log("Run Experiment clicked", formData, selectedEncoders);
+        createExperimentCall(formData, selectedEncoders)
     };
 
     const handleSaveConfig = () => {
         console.log("Save Config clicked", formData);
+        updateExperimentCall(formData.experimentId, formData,selectedEncoders);
     };
 
     const handleEncoderToggle = (encoder) => {
