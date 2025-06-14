@@ -2,7 +2,7 @@
 
 
 const {listExperiments,getExperiment,createExperiment, updateExperiment, deleteExperiment} = require("../ExpCRUDAxios");
-const {rejectResponse} = require("./Service");
+const {rejectResponse} = require("./ServiceResponse");
 
 const listExperimentsCall = () => new Promise(
     async (resolve, reject) => {
@@ -31,8 +31,11 @@ const getExperimentCall = ({ experimentId }) => new Promise(
     }
 );
 const createExperimentCall = ({ experimentInput }) => new Promise(
+
+
   async (resolve, reject) => {
     try {
+        console.log("First layer of call")
       resolve(createExperiment({
         experimentInput,
       }));
@@ -75,8 +78,6 @@ const updateExperimentCall = ({ experimentId, experimentInput }) => new Promise(
 );
 
 module.exports = {
-  listExperimentsCall,
-  getExperimentCall,
   createExperimentCall,
   deleteExperimentCall,
   updateExperimentCall,
