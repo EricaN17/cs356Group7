@@ -20,25 +20,37 @@ export async function listExperiments() {
     try {
         const config = await _getConfig();
         const response = await axios.get(`${API_BASE_URL}/experiments`, config);
-        return response.data; // → [ { id, name, status, … }, … ]
+        const experiments = response.data;
+        const token = _readRawToken();
+        const { role, sub: username } = _decodeJwtPayload(token);
+        if (role !== 'superuser') {
+            return experiments.filter(exp => exp.owner === username);
+        }
+        return experiments;
     } catch (error) {
-        console.error("Error in listExperiments:", error);
+        console.error('Error in listExperiments:', error);
         throw error;
     }
 }
 
 //Function to get experiment by id
-export async function getExperiment(data){
-    const id = data.experimentId
+export async function getExperiment({ experimentId }) {
     try {
         const config = await _getConfig();
-        const response = await axios.get(`${API_BASE_URL}/experiments/${id}`, config);
-        return response.data;
+        const response = await axios.get(`${API_BASE_URL}/experiments/${experimentId}`, config);
+        const exp = response.data;
+        // Ensure access
+        const token = _readRawToken();
+        const { role, sub: username } = _decodeJwtPayload(token);
+        if (role !== 'superuser' && exp.owner !== username) {
+            throw new Error('Access denied: insufficient permissions to view this experiment.');
+        }
+        return exp;
     } catch (error) {
-        console.error(`Error in getExperiment(${id}):`, error);
+        console.error(`Error in getExperiment(${experimentId}):`, error);
+        throw error;
     }
 }
-
 // Function to create a new experiment
 export async function createExperiment(data){
     try {
