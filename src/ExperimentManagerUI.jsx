@@ -16,7 +16,11 @@ export default function ExperimentManagerUI() {
         op2: '',
         QP: '',
         mode: '',
-        networkCondition: ''
+        networkCondition: '',
+        delay: '',
+        jitter: '',
+        packetLoss: '',
+        bandwidth: ''
     });
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
@@ -33,21 +37,17 @@ export default function ExperimentManagerUI() {
             op2: '',
             QP: '',
             mode: '',
-            networkCondition: ''
+            networkCondition: '',
+            delay: '',
+            jitter: '',
+            packetLoss: '',
+            bandwidth: ''
         });
         setSelectedEncoders([]);
     };
 
     const handleFormChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleRunExperiment = () => {
-        console.log("Run Experiment clicked", formData, selectedEncoders);
-    };
-
-    const handleSaveConfig = () => {
-        console.log("Save Config clicked", formData);
     };
 
     const handleEncoderToggle = (encoder) => {
@@ -92,16 +92,10 @@ export default function ExperimentManagerUI() {
 
             <div className="ui-container">
                 <nav className="ui-nav">
-                    <span
-                        className={activeTab === 'create' ? 'active' : ''}
-                        onClick={() => setActiveTab('create')}
-                    >
+                    <span className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>
                         Create New Experiment
                     </span>
-                    <span
-                        className={activeTab === 'view' ? 'active' : ''}
-                        onClick={() => setActiveTab('view')}
-                    >
+                    <span className={activeTab === 'view' ? 'active' : ''} onClick={() => setActiveTab('view')}>
                         View Experiments
                     </span>
                 </nav>
@@ -156,13 +150,12 @@ export default function ExperimentManagerUI() {
                                     )}
 
                                     <div className="ui-buttons">
-                                        <button onClick={handleRunExperiment}>Run Experiment</button>
-                                        <button onClick={handleSaveConfig}>Save Config</button>
+                                        <button onClick={() => console.log("Run Experiment", formData, selectedEncoders)}>Run Experiment</button>
+                                        <button onClick={() => console.log("Save Config", formData)}>Save Config</button>
                                         <button onClick={handleReset}>Reset Form</button>
                                     </div>
                                 </div>
                             </div>
-
 
                             <div className="ui-encoder-section">
                                 <h3>Encoder Selection</h3>
@@ -222,25 +215,6 @@ export default function ExperimentManagerUI() {
                                                                 <Select.ItemText>{option}</Select.ItemText>
                                                             </Select.Item>
                                                         ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Network Condition
-                                            <Select.Root
-                                                value={formData.networkCondition}
-                                                onValueChange={(val) => handleFormChange('networkCondition', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Network" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        <Select.Item value="Low Bandwidth" className="ui-option">
-                                                            <Select.ItemText>Low Bandwidth (1 Mbps, 50ms)</Select.ItemText>
-                                                        </Select.Item>
                                                     </Select.Viewport>
                                                 </Select.Content>
                                             </Select.Root>
