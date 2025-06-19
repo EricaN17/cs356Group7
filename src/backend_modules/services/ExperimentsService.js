@@ -27,10 +27,19 @@ const experimentConfigBuilder = (experimentInput) =>{
         .setEncodingParams({
             Video: experimentInput.video,
             Duration: experimentInput.Duration,
-            FPS: experimentInput.FPS,
+            FPS: experimentInput.temporalResolution,
             ResWidth: experimentInput.ResWidth,
             ResHeight: experimentInput.ResHeight,
-            OutputFile: experimentInput.OutputFile
+            OutputFile: experimentInput.OutputFile,
+            Bitrate: experimentInput.bitrate,
+            YuvFormat: experimentInput.YuvFormat,
+            EncoderMode : experimentInput.EncoderMode,
+            Quality: experimentInput.Quality,
+            BitDepth: experimentInput.bitDepth,
+            IntraPeriod: experimentInput.IntraPeriod,
+            BFrames: experimentInput.BFrames
+
+
         })
         .build();
 }
