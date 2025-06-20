@@ -1,5 +1,6 @@
 // Import Axios library
-import axios from "axios";
+import axios from 'axios'
+import expModel from './ExperimentModel/ExperimentModel.js'
 import { getAuthHeaderConfig } from "./services/UabsService.js";
 
 // Base URL for your API
