@@ -312,3 +312,59 @@ export default function ExperimentManagerUI() {
         </div>
     );
 }
+
+// ExperimentManager.jsx
+// import React, { useState, useEffect } from 'react';
+// import { fetchExperiments, deleteExperiment } from './api'; // Ensure this path is correct
+// import './ExperimentManagerUI.css';
+//
+// const ExperimentManager = () => {
+//     const [experiments, setExperiments] = useState([]);
+//     const [loading, setLoading] = useState(true);
+//     const [error, setError] = useState(null);
+//
+//     useEffect(() => {
+//         const loadExperiments = async () => {
+//             try {
+//                 setLoading(true);
+//                 setError(null);
+//                 const data = await fetchExperiments();
+//                 setExperiments(data);
+//             } catch (error) {
+//                 setError(error.message);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+//
+//         loadExperiments();
+//     }, []);
+//
+//     const handleDelete = async (experimentId) => {
+//         try {
+//             await deleteExperiment(experimentId);
+//             setExperiments(prev => prev.filter(exp => exp.id !== experimentId));
+//         } catch (error) {
+//             setError(error.message);
+//         }
+//     };
+//
+//     if (loading) return <div>Loading...</div>;
+//     if (error) return <div>Error: {error}</div>;
+//
+//     return (
+//         <div>
+//             <h2>Experiment Manager</h2>
+//             <ul>
+//                 {experiments.map(exp => (
+//                     <li key={exp.id}>
+//                         {exp.experimentName} - {exp.description}
+//                         <button onClick={() => handleDelete(exp.id)}>Delete</button>
+//                     </li>
+//                 ))}
+//             </ul>
+//         </div>
+//     );
+// };
+//
+// export default ExperimentManager;

@@ -135,6 +135,8 @@ body {
 .ui-option {
     padding: 0.5rem 1rem;
     cursor: pointer;
+    background-color: white ;
+    color: black;
 }
 
 .ui-option:hover {
