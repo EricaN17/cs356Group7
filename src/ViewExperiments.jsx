@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchExperiments, deleteExperiment } from './api'; // Ensure this path is correct
+import { fetchExperiments, deleteExperiment } from './api'; 
 import './ExperimentManagerUI.css';
 
 const ViewExperiments = () => {
