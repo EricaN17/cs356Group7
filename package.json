@@ -2,6 +2,7 @@
   "name": "experiment-manager",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/experiments",
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",
     "@radix-ui/react-icons": "^1.3.2",
