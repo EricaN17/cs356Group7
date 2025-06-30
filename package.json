@@ -2,12 +2,13 @@
   "name": "experiment-manager",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/experiments",
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-select": "^2.2.4",
-    "axios": "^1.10.0",
-    "express": "^5.1.0",
+    "@radix-ui/react-toggle-group": "^1.1.9",
+    "nginx": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
@@ -27,6 +28,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "proxy": "http://localhost:8000"
+  }
 }
