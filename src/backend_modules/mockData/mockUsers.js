@@ -6,6 +6,7 @@ export const mockUsers = [
         role: 'user',
         email: 'user1@example.com',
         firstName: 'User',
+
         lastName: 'One',
         createdAt: '2025-01-01T10:00:00Z',
         preferences: { theme: 'light', notifications: true }
@@ -49,5 +50,5 @@ export function setMockToken(username) {
             .replace(/=+$/, '');
 
     const token = `${encode(header)}.${encode(payload)}.`;
-    window.localStorage.setItem('id_token', token);
+    window.localStorage.setItem('id_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlcmljYTEiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJmaXJzdF9uYW1lIjoiZXJpY2EiLCJsYXN0X25hbWUiOiJzdHJpbmciLCJlbWFpbCI6ImVyaWNhIiwiaWF0IjoxNzUxMjk1NTgyLCJleHAiOjE3NTEzMDI3ODJ9.ldbrne4ahnpe_4lnUJ-w7zlABdUTP3JhsYuVIwXn7O4');
 }

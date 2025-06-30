@@ -208,3 +208,43 @@ body {
 .ui-table td[colspan] {
     color: #555;
 }
+
+.experiments-container {
+    padding: 20px;
+}
+
+.experiments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.experiment-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.experiment-card h3 {
+    margin-top: 0;
+}
+
+.experiment-card p {
+    margin: 5px 0;
+}
+
+.experiment-card ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.experiment-card ul li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fff;
+}
+

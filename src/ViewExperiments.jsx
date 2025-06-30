@@ -1,107 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { fetchExperiments, deleteExperiment } from './api'; 
+import React, { useEffect, useState } from 'react';
+import { fetchExperiments } from './api';
 import './ExperimentManagerUI.css';
 
 const ViewExperiments = () => {
     const [experiments, setExperiments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [refresh, setRefresh] = useState(false);
 
     useEffect(() => {
         const loadExperiments = async () => {
             try {
-                setLoading(true);
-                setError(null);
                 const data = await fetchExperiments();
                 setExperiments(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            } catch (error) {
+                console.error("Failed to fetch experiments:", error);
             }
         };
 
         loadExperiments();
-    }, [refresh]);
-
-    const handleDelete = async (experimentId) => {
-        if (window.confirm('Are you sure you want to delete this experiment?')) {
-            try {
-                setLoading(true);
-                await deleteExperiment(experimentId);
-                setRefresh(prev => !prev); // Trigger refresh
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        }
-    };
-
-    const handleRefresh = () => {
-        setRefresh(prev => !prev);
-    };
-
-    if (loading && experiments.length === 0) {
-        return <div className="ui-loading">Loading experiments...</div>;
-    }
-
-    if (error) {
-        return (
-            <div className="ui-error">
-                Error: {error}
-                <button onClick={handleRefresh}>Retry</button>
-            </div>
-        );
-    }
+    }, []);
 
     return (
-        <div className="ui-table-section">
-            <div className="ui-table-header">
-                <h2>Experiment History</h2>
-                <button onClick={handleRefresh} disabled={loading}>
-                    Refresh
-                </button>
+        <div className="experiments-container">
+            <h2>Experiments</h2>
+            <div className="experiments-grid">
+                {experiments.map((experiment) => (
+                    <div className="experiment-card" key={experiment.Id}>
+                        <h3>{experiment.ExperimentName}</h3>
+                        <p><strong>Description:</strong> {experiment.Description}</p>
+                        <p><strong>Status:</strong> {experiment.status}</p>
+                        <p><strong>Created At:</strong> {new Date(experiment.CreatedAt).toLocaleString()}</p>
+                        <p><strong>Owner ID:</strong> {experiment.OwnerId}</p>
+                        <h4>Sequences:</h4>
+                        <ul>
+                            {experiment.Sequences.map((sequence) => (
+                                <li key={sequence.SequenceId}>
+                                    <p><strong>Sequence ID:</strong> {sequence.SequenceId}</p>
+                                    <p><strong>Network Topology ID:</strong> {sequence.NetworkTopologyId || 'N/A'}</p>
+                                    <p><strong>Network Disruption Profile ID:</strong> {sequence.NetworkDisruptionProfileId}</p>
+                                    <p><strong>Encoding Parameters:</strong> {JSON.stringify(sequence.EncodingParameters)}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </div>
-
-            {experiments.length === 0 ? (
-                <p>No experiments found</p>
-            ) : (
-                <table className="ui-table">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {experiments.map(exp => (
-                        <tr key={exp.id}>
-                            <td>{exp.id}</td>
-                            <td>{exp.experimentName}</td>
-                            <td>
-                  <span className={`status-${exp.status.toLowerCase()}`}>
-                    {exp.status}
-                  </span>
-                            </td>
-                            <td>{new Date(exp.createdAt).toLocaleString()}</td>
-                            <td>
-                                <button
-                                    onClick={() => handleDelete(exp.id)}
-                                    disabled={loading}
-                                >
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            )}
         </div>
     );
 };
