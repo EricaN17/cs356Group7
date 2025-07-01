@@ -3,8 +3,7 @@ import axios from 'axios'
 import expModel from './ExperimentModel/ExperimentModel.js'
 import { getAuthHeaderConfig } from "./services/UabsService.js";
 
-// Base URL for your API
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const API_BASE_URL = '/api/v1'
 
 async function _getConfig(multipart = false) {
     if (multipart) {
@@ -34,41 +33,29 @@ export async function listExperiments() {
     }
 }
 
-//Function to get experiment by id
-export async function getExperiment({ experimentId }) {
-    try {
-        const config = await _getConfig();
-        const response = await axios.get(`${API_BASE_URL}/experiments/${experimentId}`, config);
-        const exp = response.data;
-        // Ensure access
-        const token = _readRawToken();
-        const { role, sub: username } = _decodeJwtPayload(token);
-        if (role !== 'superuser' && exp.owner !== username) {
-            throw new Error('Access denied: insufficient permissions to view this experiment.');
-        }
-        return exp;
-    } catch (error) {
-        console.error(`Error in getExperiment(${experimentId}):`, error);
-        throw error;
-    }
-}
 // Function to create a new experiment
-export async function createExperiment(data){
+
+
+
+
+export async function createExperiment(expModel){
     try {
+        console.log(expModel)
         const config = await _getConfig();
-        const response = await axios.post(`${API_BASE_URL}/experiments`, data, config);
-        return response.data;
+        const response = await axios.post(`${API_BASE_URL}/experiments`, expModel,config);
+        return response.expModel;
     } catch (error) {
         console.error('Error creating experiment:', error);
     }
 }
 
 // Function to update a experiment by ID
-export async function updateExperiment(data){
-    const id = data.experimentId
+export async function updateExperiment(experimentId,expModel){
+    console.log(expModel)
+    const id = experimentId
     try {
         const config = await _getConfig();
-        const response = await axios.put(`${API_BASE_URL}/experiments/${id}`, data, config);
+        const response = await axios.put(`${API_BASE_URL}/experiments/${id}`,expModel,config);
         return response.data;
     } catch (error) {
         console.error(`Error updating record with ID ${id}:`, error);
@@ -76,12 +63,13 @@ export async function updateExperiment(data){
 }
 
 // Function to delete a experiment by ID
-export async function deleteExperiment(body){
+export async function deleteExperiment(id){
     try {
+        console.log(id);
         const config = await _getConfig();
-        const response = await axios.post(`${API_BASE_URL}/delete/${body.experimentId}`, null, config);
+        const response = await axios.delete(`${API_BASE_URL}/experiments/${id}`,config);
         return response.data;
     } catch (error) {
-        console.error(`Error deleting record with ID ${id}:`, error);
+        console.error(`Error deleting record with ID ${expModel.id}:`, error);
     }
 }
