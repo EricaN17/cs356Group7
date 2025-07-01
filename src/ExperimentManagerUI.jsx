@@ -4,11 +4,39 @@ import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
+import NetworkProfileSelector from "./NetworkProfileSelector";
+import './backend_modules/services/ExperimentsService.js'
+import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
 import { fetchEncoders, fetchExperiments } from './api'; // Import your API functions
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
+        id: '',
+        OwnerId: '',
+        createdAt: '',
+        description: '',
+        experimentName: '',
+        status: '',
+        bitDepth: '',
+        spatialResolution: '',
+        temporalResolution: '',
+        encoding: '',
+        op1: '',
+        op2: '',
+        QP: '',
+        mode: '',
+        networkCondition: '',
+        delay: '',
+        jitter: '',
+        packetLoss: '',
+        bandwidth: '',
+        Video: "",
+        Duration: "",
+        Frames_to_Encode: '',
+        ResWidth: '',
+        ResHeight: '',
+        OutputFile: '',
         Encoder: '',
         Bitrate: '',
         QP: '',
@@ -16,6 +44,8 @@ export default function ExperimentManagerUI() {
         NetworkCondition: '',
     });
 
+
+    const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
     const [encoders, setEncoders] = useState([]);
     const [bitrates, setBitrates] = useState(['1000', '2000', '3000']); // Example bitrate options
@@ -51,22 +81,89 @@ export default function ExperimentManagerUI() {
 
             <div className="ui-container">
                 <nav className="ui-nav">
-                    <span
-                        className={activeTab === 'create' ? 'active' : ''}
-                        onClick={() => setActiveTab('create')}
-                    >
+                    <span className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>
                         Create New Experiment
                     </span>
-                    <span
-                        className={activeTab === 'view' ? 'active' : ''}
-                        onClick={() => setActiveTab('view')}
-                    >
+                    <span className={activeTab === 'view' ? 'active' : ''} onClick={() => setActiveTab('view')}>
                         View Experiments
                     </span>
                 </nav>
 
                 <div className="ui-grid">
                     {activeTab === 'create' && (
+                        <>
+                            <div className="ui-form-section">
+                                <h2>Create New Experiment (Main Form)</h2>
+
+                                <div className="ui-form">
+                                    <label className="ui-checkbox">
+                                        <Checkbox.Root
+                                            className="checkbox-box"
+                                            checked={useJsonConfig}
+                                            onCheckedChange={(val) => setUseJsonConfig(!!val)}
+                                        >
+                                            <Checkbox.Indicator>
+                                                <CheckIcon className="checkbox-check" />
+                                            </Checkbox.Indicator>
+                                        </Checkbox.Root>
+                                        <span>Upload JSON Config (Checkbox)</span>
+                                    </label>
+
+                                    {!useJsonConfig && (
+                                        <div className="ui-select-grid">
+                                            {selectOptions.map((field, idx) => (
+                                                <label key={field} className="ui-label">
+                                                    {selectLabels[idx]}
+                                                    <Select.Root
+                                                        value={formData[field]}
+                                                        onValueChange={(val) => handleFormChange(field, val)}
+                                                    >
+                                                        <Select.Trigger className="ui-select">
+                                                            <Select.Value placeholder="Select..." />
+                                                        </Select.Trigger>
+                                                        <Select.Portal>
+                                                            <Select.Content className="ui-dropdown">
+                                                                <Select.Viewport>
+                                                                    {(selectDropdownValues[field] || []).map((option) => (
+                                                                        <Select.Item key={option} value={option} className="ui-option">
+                                                                            <Select.ItemText>{option}</Select.ItemText>
+                                                                        </Select.Item>
+                                                                    ))}
+                                                                </Select.Viewport>
+                                                            </Select.Content>
+                                                        </Select.Portal>
+                                                    </Select.Root>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="ui-buttons">
+                                        <button onClick={() => console.log("Run Experiment", formData, selectedEncoders)}>Run Experiment</button>
+                                        <button onClick={() => console.log("Save Config", formData)}>Save Config</button>
+                                        <button onClick={handleReset}>Reset Form</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="ui-encoder-section">
+                                <h3>Encoder Selection</h3>
+                                <div className="ui-toggle-group">
+                                    {['SVC', 'AVC', 'HEVC'].map((encoder) => (
+                                        <label key={encoder} className="ui-checkbox">
+                                            <Checkbox.Root
+                                                className="checkbox-box"
+                                                checked={selectedEncoders.includes(encoder)}
+                                                onCheckedChange={() => handleEncoderToggle(encoder)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                            <span>{encoder}</span>
+                                        </label>
+                                    ))}
+                                </div>
                         <div className="ui-form-section">
                             <h2>Create New Experiment</h2>
                             <div className="ui-form">
@@ -162,6 +259,30 @@ export default function ExperimentManagerUI() {
                                     </Select.Root>
                                 </label>
 
+                                        <NetworkProfileSelector
+                                            selectedProfileId={formData.networkCondition}
+                                            onChange={(profile) => {
+                                                if (profile) {
+                                                    handleFormChange('networkCondition', profile.id.toString());
+                                                    handleFormChange('delay', profile.delay.toString());
+                                                    handleFormChange('jitter', profile.jitter.toString());
+                                                    handleFormChange('packetLoss', profile.packetLoss.toString());
+                                                    handleFormChange('bandwidth', profile.bandwidth.toString());
+                                                } else {
+                                                    handleFormChange('networkCondition', '');
+                                                    handleFormChange('delay', '');
+                                                    handleFormChange('jitter', '');
+                                                    handleFormChange('packetLoss', '');
+                                                    handleFormChange('bandwidth', '');
+                                                }
+                                            }}
+                                        />
+
+
+                                    </div>
+                                )}
+
+                                <button className="ui-log-button">Error & Log Panel</button>
                                 <label className="ui-label">
                                     Network Condition
                                     <Select.Root
@@ -199,6 +320,7 @@ export default function ExperimentManagerUI() {
         </div>
     );
 }
+
 
 
 

@@ -1,0 +1,28 @@
+[
+  {
+    "id": "exp1",
+    "name": "4G Streaming Test",
+    "codec": "HEVC",
+    "bitrate": "4Mbps",
+    "resolution": "1080p",
+    "networkProfile": "4G Mobile",
+    "encoders": ["HEVC", "SVC"],
+    "delay": 70,
+    "jitter": 20,
+    "packetLoss": 5,
+    "bandwidth": 10
+  },
+  {
+    "id": "exp2",
+    "name": "Wi-Fi Home Test",
+    "codec": "AVC",
+    "bitrate": "2Mbps",
+    "resolution": "720p",
+    "networkProfile": "Wi-Fi (Home)",
+    "encoders": ["AVC"],
+    "delay": 30,
+    "jitter": 5,
+    "packetLoss": 1,
+    "bandwidth": 20
+  }
+]

@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { fetchExperiments } from './api'; // Import your API function
+import React, { useEffect, useState } from 'react';
+import './ViewExperiments.css'; // ✅ make sure this CSS is imported
 
 const ViewExperiments = () => {
     const [experiments, setExperiments] = useState([]);
     const [error, setError] = useState(null);
+
+const ViewExperiments = () => {
+    const [experiments, setExperiments] = useState([]);
 
     useEffect(() => {
         const loadExperiments = async () => {
@@ -15,6 +20,13 @@ const ViewExperiments = () => {
             }
         };
         loadExperiments();
+        fetch('/data/experiments.json')
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to fetch experiments');
+                return res.json();
+            })
+            .then((data) => setExperiments(data))
+            .catch((err) => console.error('Error loading experiments:', err));
     }, []);
 
     if (error) {
@@ -22,6 +34,36 @@ const ViewExperiments = () => {
     }
 
     return (
+        <div className="view-experiments">
+            <h2>Previous Experiments</h2>
+            {experiments.length === 0 ? (
+                <p>No experiments found.</p>
+            ) : (
+                <table className="experiment-table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Codec</th>
+                        <th>Resolution</th>
+                        <th>Bitrate</th>
+                        <th>Network</th>
+                        <th>Encoders</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {experiments.map((exp) => (
+                        <tr key={exp.id}>
+                            <td>{exp.name}</td>
+                            <td>{exp.codec}</td>
+                            <td>{exp.resolution}</td>
+                            <td>{exp.bitrate}</td>
+                            <td>{exp.networkProfile}</td>
+                            <td>{exp.encoders.join(', ')}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         <div>
             <h2>Experiments</h2>
             <ul>
@@ -52,3 +94,4 @@ const ViewExperiments = () => {
 
 export default ViewExperiments;
 
+export default ViewExperiments;
