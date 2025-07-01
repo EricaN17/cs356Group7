@@ -10,6 +10,17 @@ import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./
 
 export default function ExperimentManagerUI() {
 
+
+    const [videoFile, setVideoFile] = useState(null);
+
+    const handleVideoChange = (e) => {
+        const file = e.target.files[0];
+        if (file && file.name.endsWith(".y4m")) {
+            setVideoFile(file);
+        } else {
+            alert("Please upload a valid .y4m video file.");
+        }
+    };
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
@@ -99,10 +110,33 @@ export default function ExperimentManagerUI() {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleRunExperiment = () => {
+    const handleRunExperiment = async () => {
         console.log("Run Experiment clicked", formData, selectedEncoders);
-        createExperimentCall(formData, selectedEncoders)
+
+        const payload = new FormData();
+
+        if (videoFile) {
+            payload.append("Video", videoFile);
+        }
+
+        for (const key in formData) {
+            if (key !== "Video") {
+                payload.append(key, formData[key]);
+            }
+        }
+
+        payload.append("selectedEncoders", JSON.stringify(selectedEncoders));
+
+        try {
+            await createExperimentCall(payload);
+            alert("Experiment created successfully!");
+        } catch (error) {
+            console.error("Experiment creation failed:", error);
+            alert("Failed to create experiment.");
+        }
     };
+
+
 
     const handleSaveConfig = () => {
         console.log("Save Config clicked", formData);
@@ -164,6 +198,18 @@ export default function ExperimentManagerUI() {
                         <>
                             <div className="ui-form-section">
                                 <h2>Create New Experiment (Main Form)</h2>
+
+                                <div className="ui-upload-section">
+                                    <label className="ui-upload-label">
+                                        <span className="ui-upload-title">Upload Video (.y4m):</span>
+                                        <input
+                                            type="file"
+                                            accept=".y4m"
+                                            onChange={handleVideoChange}
+                                            className="ui-upload-input"
+                                        />
+                                    </label>
+                                </div>
 
                                 <div className="ui-form">
                                     <label className="ui-checkbox">
