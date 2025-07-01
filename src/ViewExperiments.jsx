@@ -1,79 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import './ViewExperiments.css'; // ✅ make sure this CSS is imported
 
-export default function ViewExperiments()
-{
-    const [ experiments, setExperiments] = useState ([]);
-
-    // i will use the API here when i have it
+const ViewExperiments = () => {
+    const [experiments, setExperiments] = useState([]);
 
     useEffect(() => {
-        setExperiments([
-            {
-                id: 'EXP-001',
-                name: 'Baseline Test',
-                encoder: 'HEVC',
-                duration: '5m 23s',
-                status: 'Completed',
-                outputLink: '/output/exp-001.mp4',
-                logLink: '/logs/exp-001.log'
-            },
-            {
-                id: 'EXP-002',
-                name: 'Quality Check',
-                encoder: 'AVC',
-                duration: '3m 40s',
-                status: 'Running',
-                outputLink: '',
-                logLink: '/logs/exp-002.log'
-            }
-        ]);
+        fetch('/data/experiments.json')
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to fetch experiments');
+                return res.json();
+            })
+            .then((data) => setExperiments(data))
+            .catch((err) => console.error('Error loading experiments:', err));
     }, []);
 
     return (
-        <div className="ui-wrapper">
-            <div className="ui-header">Experiments Dashboard</div>
-            <div className="ui-container">
-                <table className="ui-table">
+        <div className="view-experiments">
+            <h2>Previous Experiments</h2>
+            {experiments.length === 0 ? (
+                <p>No experiments found.</p>
+            ) : (
+                <table className="experiment-table">
                     <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
-                        <th>Encoder</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                        <th>Output</th>
-                        <th>Log</th>
+                        <th>Codec</th>
+                        <th>Resolution</th>
+                        <th>Bitrate</th>
+                        <th>Network</th>
+                        <th>Encoders</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {experiments.length === 0 ? (
-                        <tr>
-                            <td colSpan="7">No experiments available</td>
+                    {experiments.map((exp) => (
+                        <tr key={exp.id}>
+                            <td>{exp.name}</td>
+                            <td>{exp.codec}</td>
+                            <td>{exp.resolution}</td>
+                            <td>{exp.bitrate}</td>
+                            <td>{exp.networkProfile}</td>
+                            <td>{exp.encoders.join(', ')}</td>
                         </tr>
-                    ) : (
-                        experiments.map((exp) => (
-                            <tr key={exp.id}>
-                                <td>{exp.id}</td>
-                                <td>{exp.name}</td>
-                                <td>{exp.encoder}</td>
-                                <td>{exp.duration}</td>
-                                <td>{exp.status}</td>
-                                <td>
-                                    {exp.outputLink ? (
-                                        <a href={exp.outputLink} target="_blank" rel="noopener noreferrer">Download</a>
-                                    ) : 'Pending'}
-                                </td>
-                                <td>
-                                    <a href={exp.logLink} target="_blank" rel="noopener noreferrer">View Log</a>
-                                </td>
-                            </tr>
-                        ))
-                    )}
+                    ))}
                     </tbody>
                 </table>
-            </div>
+            )}
         </div>
     );
+};
 
-}
-
+export default ViewExperiments;

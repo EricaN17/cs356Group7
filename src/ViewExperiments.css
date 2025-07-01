@@ -1,0 +1,30 @@
+.view-experiments {
+    margin: 2rem;
+}
+
+.experiment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.experiment-table th,
+.experiment-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.experiment-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+}
+
+.experiment-table tr:hover {
+    background-color: #f0f8ff;
+    transition: background 0.3s ease;
+}

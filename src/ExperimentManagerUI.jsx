@@ -4,6 +4,7 @@ import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
+import NetworkProfileSelector from "./NetworkProfileSelector";
 import './backend_modules/services/ExperimentsService.js'
 import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
 
@@ -26,6 +27,10 @@ export default function ExperimentManagerUI() {
         QP: '',
         mode: '',
         networkCondition: '',
+        delay: '',
+        jitter: '',
+        packetLoss: '',
+        bandwidth: '',
         Video: "",
         Duration: "",
         Frames_to_Encode: '',
@@ -45,6 +50,7 @@ export default function ExperimentManagerUI() {
         IntraPeriod: '',
         BFrames: '',
     });
+
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
@@ -145,16 +151,10 @@ export default function ExperimentManagerUI() {
 
             <div className="ui-container">
                 <nav className="ui-nav">
-                    <span
-                        className={activeTab === 'create' ? 'active' : ''}
-                        onClick={() => setActiveTab('create')}
-                    >
+                    <span className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>
                         Create New Experiment
                     </span>
-                    <span
-                        className={activeTab === 'view' ? 'active' : ''}
-                        onClick={() => setActiveTab('view')}
-                    >
+                    <span className={activeTab === 'view' ? 'active' : ''} onClick={() => setActiveTab('view')}>
                         View Experiments
                     </span>
                 </nav>
@@ -209,13 +209,12 @@ export default function ExperimentManagerUI() {
                                     )}
 
                                     <div className="ui-buttons">
-                                        <button onClick={handleRunExperiment}>Run Experiment</button>
-                                        <button onClick={handleSaveConfig}>Save Config</button>
+                                        <button onClick={() => console.log("Run Experiment", formData, selectedEncoders)}>Run Experiment</button>
+                                        <button onClick={() => console.log("Save Config", formData)}>Save Config</button>
                                         <button onClick={handleReset}>Reset Form</button>
                                     </div>
                                 </div>
                             </div>
-
 
                             <div className="ui-encoder-section">
                                 <h3>Encoder Selection</h3>
@@ -280,24 +279,26 @@ export default function ExperimentManagerUI() {
                                             </Select.Root>
                                         </label>
 
-                                        <label className="ui-label">
-                                            Network Condition
-                                            <Select.Root
-                                                value={formData.networkCondition}
-                                                onValueChange={(val) => handleFormChange('networkCondition', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Network" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        <Select.Item value="Low Bandwidth" className="ui-option">
-                                                            <Select.ItemText>Low Bandwidth (1 Mbps, 50ms)</Select.ItemText>
-                                                        </Select.Item>
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
-                                        </label>
+                                        <NetworkProfileSelector
+                                            selectedProfileId={formData.networkCondition}
+                                            onChange={(profile) => {
+                                                if (profile) {
+                                                    handleFormChange('networkCondition', profile.id.toString());
+                                                    handleFormChange('delay', profile.delay.toString());
+                                                    handleFormChange('jitter', profile.jitter.toString());
+                                                    handleFormChange('packetLoss', profile.packetLoss.toString());
+                                                    handleFormChange('bandwidth', profile.bandwidth.toString());
+                                                } else {
+                                                    handleFormChange('networkCondition', '');
+                                                    handleFormChange('delay', '');
+                                                    handleFormChange('jitter', '');
+                                                    handleFormChange('packetLoss', '');
+                                                    handleFormChange('bandwidth', '');
+                                                }
+                                            }}
+                                        />
+
+
                                     </div>
                                 )}
 
