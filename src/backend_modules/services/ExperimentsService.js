@@ -15,7 +15,7 @@ export const modelBuilder = (experimentInput) => {
         experimentInput.ownerId,
         Date.now(),
         experimentInput.description,
-        "Dummy8.0",
+        experimentInput.experimentName,
         "PENDING",
         new Set);
 };
@@ -26,13 +26,13 @@ const experimentConfigBuilder = (experimentInput) =>{
         .setNetworkTopologyId(experimentInput.NetworkTopologyId)
         .setDisruptionProfileId(experimentInput.networkDisruptionProfileId)
         .setEncodingParams({
-            Video: experimentInput.video,
+            Video: experimentInput.Video,
             Duration: experimentInput.Duration,
             FPS: experimentInput.temporalResolution,
             ResWidth: experimentInput.ResWidth,
             ResHeight: experimentInput.ResHeight,
             OutputFile: experimentInput.OutputFile,
-            Bitrate: experimentInput.bitrate,
+            Bitrate: experimentInput.Bitrate,
             YuvFormat: experimentInput.YuvFormat,
             EncoderMode : experimentInput.EncoderMode,
             Quality: experimentInput.Quality,
@@ -68,9 +68,7 @@ export const createExperimentCall = async (experimentInput,modelHead) => {
             const config = experimentConfigBuilder(experimentInput)
             experiment.addToSet(config)
 
-            experiment.videoSources = [
-                "Test input"
-            ];
+            experiment.videoSources = config.videoSources
 
             experiment.encodingParameters = {
                 codec: config.EncoderMode,
@@ -78,14 +76,9 @@ export const createExperimentCall = async (experimentInput,modelHead) => {
                 resolution: config.spatialResolution
             };
 
-            experiment.networkConditions = {
-                packetLoss: "2%",
-                delay: "120ms"
-            };
+            experiment.networkConditions = config.networkConditions
 
-            experiment.metricsRequested = [
-                "latency", "bitrate", "rebufferRatio"
-            ];
+            experiment.metricsRequested = config.metricsRequested
         }
         return await createExperiment(experiment.toNewJSON());
     } catch (e) {

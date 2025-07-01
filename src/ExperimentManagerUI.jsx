@@ -13,7 +13,6 @@ import {
     createExperimentSetConfig
 } from "./backend_modules/services/ExperimentsService";
 import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
-import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
 
 export default function ExperimentManagerUI() {
 
@@ -34,8 +33,8 @@ export default function ExperimentManagerUI() {
         QP: '',
         mode: '',
         networkCondition: '',
-        Video: "",
-        Duration: "",
+        Video: '',
+        Duration: '',
         Frames_to_Encode: '',
         ResWidth: '',
         ResHeight: '',
@@ -52,6 +51,9 @@ export default function ExperimentManagerUI() {
         QPBSlice: '',
         IntraPeriod: '',
         BFrames: '',
+        VideoSources: [],
+        networkConditions: '',
+        metricsRequested: ''
     });
 
     const modelHeadBuilderCall = () => {
@@ -100,6 +102,9 @@ export default function ExperimentManagerUI() {
             QPBSlice: '',
             IntraPeriod: '',
             BFrames: '',
+            VideoSources: '',
+            networkConditions: '',
+            metricsRequested: ''
         });
         setSelectedEncoders([]);
     };

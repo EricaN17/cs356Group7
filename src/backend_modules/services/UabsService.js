@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { setMockToken as _setMockToken, mockUsers } from '../mockData/mockUsers.js';
 
-const USER_API_BASE = '/api/v1';
+const USER_API_BASE = 'http://localhost:8000/api/v1';
 
 export { _setMockToken as setMockToken, mockUsers };
 
@@ -30,28 +30,24 @@ export function _decodeJwtPayload(token) {
 }
 
 export async function getCurrentUser() {
-    const token = _readRawToken();
+    const token   = _readRawToken();
     const payload = _decodeJwtPayload(token);
+
+    // —— MOCK SHORT-CIRCUIT ——
+    // If payload.sub matches one of your mockUsers, return it directly
+    const mockUser = mockUsers.find(u => u.username === payload.sub);
+    if (mockUser) {
+        return { user: mockUser, token, payload };
+    }
+    // ——————————————
+
+    // Otherwise fall back to the real backend call
     const username = payload.sub;
-    if (!username) {
-        throw new Error("Auth token is missing 'sub' (username) claim.");
-    }
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-        throw new Error('Auth token expired. Please log in again.');
-    }
-    try {
-        const response = await axios.get(
-            `${USER_API_BASE}/users/${username}`,
-            { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
-        );
-        return { user: response.data, token, payload };
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response && (error.response.status === 401 || error.response.status === 403)) {
-            throw new Error('Invalid or expired auth token. Please log in again.');
-        }
-        console.error('Unexpected error in getCurrentUser:', error);
-        throw error;
-    }
+    const response = await axios.get(
+        `${USER_API_BASE}/users/${username}`,
+        { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
+    );
+    return { user: response.data, token, payload };
 }
 
 export async function getAuthHeaderConfig(options = { json: true }) {

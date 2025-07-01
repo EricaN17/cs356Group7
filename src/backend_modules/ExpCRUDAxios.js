@@ -49,6 +49,25 @@ export async function createExperiment(expModel){
     }
 }
 
+//Function to get experiment by id
+export async function getExperiment({ experimentId }) {
+    try {
+        const config = await _getConfig();
+        const response = await axios.get(`${API_BASE_URL}/experiments/${experimentId}`, config);
+        const exp = response.data;
+        // Ensure access
+        const token = _readRawToken();
+        const { role, sub: username } = _decodeJwtPayload(token);
+        if (role !== 'superuser' && exp.owner !== username) {
+            throw new Error('Access denied: insufficient permissions to view this experiment.');
+        }
+        return exp;
+    } catch (error) {
+        console.error(`Error in getExperiment(${experimentId}):`, error);
+        throw error;
+    }
+}
+
 // Function to update a experiment by ID
 export async function updateExperiment(experimentId,expModel){
     console.log(expModel)

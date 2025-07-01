@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {fetchEncoders, fetchExperiments} from "./api.js";
+
 export default function ViewExperiments()
 {
     const [ experiments, setExperiments] = useState ([]);
@@ -7,11 +7,27 @@ export default function ViewExperiments()
     // i will use the API here when i have it
 
     useEffect(() => {
-
-        console.log(fetchExperiments());
-        console.log(fetchEncoders())
+        setExperiments([
+            {
+                id: 'EXP-001',
+                name: 'Baseline Test',
+                encoder: 'HEVC',
+                duration: '5m 23s',
+                status: 'Completed',
+                outputLink: '/output/exp-001.mp4',
+                logLink: '/logs/exp-001.log'
+            },
+            {
+                id: 'EXP-002',
+                name: 'Quality Check',
+                encoder: 'AVC',
+                duration: '3m 40s',
+                status: 'Running',
+                outputLink: '',
+                logLink: '/logs/exp-002.log'
+            }
+        ]);
     }, []);
-
 
     return (
         <div className="ui-wrapper">
