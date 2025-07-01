@@ -4,149 +4,45 @@ import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
-import { createExperimentCall, updateExperimentCall } from "./backend_modules/services/ExperimentsService";
-import { fetchEncoders, fetchDropdownData } from './api'; // Import your API functions
+import { fetchEncoders, fetchExperiments } from './api'; // Import your API functions
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
-        id: '',
-        OwnerId: '',
-        createdAt: '',
-        description: '',
-        experimentName: '',
-        status: '',
-        bitDepth: '',
-        spatialResolution: '',
-        temporalResolution: '',
-        encoding: '',
-        op1: '',
-        op2: '',
-        QP: '',
-        mode: '',
-        networkCondition: '',
-        Video: "",
-        Duration: "",
-        Frames_to_Encode: '',
-        ResWidth: '',
-        ResHeight: '',
-        OutputFile: '',
         Encoder: '',
         Bitrate: '',
-        YuvFormat: '',
-        EncoderMode: '',
-        Quality: '',
-        Depth: '',
-        Gamut: '',
-        QPISlice: '',
-        QPPSlice: '',
-        QPBSlice: '',
-        IntraPeriod: '',
-        BFrames: '',
+        QP: '',
+        Mode: '',
+        NetworkCondition: '',
     });
 
-    const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
+    const [encoders, setEncoders] = useState([]);
+    const [bitrates, setBitrates] = useState(['1000', '2000', '3000']); // Example bitrate options
+    const [qps, setQps] = useState(['22', '23', '24']); // Example QP options
+    const [modes, setModes] = useState(['CBR', 'VBR']); // Example mode options
+    const [networkConditions, setNetworkConditions] = useState(['Good', 'Average', 'Poor']); // Example network conditions
 
-    // State for dropdown options
-    const [dropdownOptions, setDropdownOptions] = useState({
-        bitDepth: [],
-        spatialResolution: [],
-        temporalResolution: [],
-        encoding: [],
-        op1: [],
-        op2: [],
-        QP: [],
-        mode: [],
-        networkCondition: [],
-    });
-
-    // Fetch dropdown data and encoders when the component mounts
+    // Fetch encoders when the component mounts
     useEffect(() => {
-        const loadData = async () => {
+        const loadEncoders = async () => {
             try {
                 const encoderData = await fetchEncoders();
-                // Assuming fetchDropdownData returns an object with dropdown options
-                const dropdownData = await fetchDropdownData();
-
-                setDropdownOptions({
-                    bitDepth: dropdownData.bitDepth || [],
-                    spatialResolution: dropdownData.spatialResolution || [],
-                    temporalResolution: dropdownData.temporalResolution || [],
-                    encoding: dropdownData.encoding || [],
-                    op1: dropdownData.op1 || [],
-                    op2: dropdownData.op2 || [],
-                    QP: dropdownData.QP || [],
-                    mode: dropdownData.mode || [],
-                    networkCondition: dropdownData.networkCondition || [],
-                });
+                setEncoders(encoderData);
             } catch (error) {
-                console.error("Failed to fetch data:", error);
+                console.error("Failed to fetch encoders:", error);
             }
         };
-        loadData();
+        loadEncoders();
     }, []);
-
-    const handleReset = () => {
-        setUseJsonConfig(false);
-        setFormData({
-            id: '',
-            OwnerId: '',
-            createdAt: '',
-            description: '',
-            experimentName: '',
-            status: '',
-            bitDepth: '',
-            spatialResolution: '',
-            temporalResolution: '',
-            encoding: '',
-            op1: '',
-            op2: '',
-            QP: '',
-            mode: '',
-            networkCondition: '',
-            Video: "",
-            Duration: "",
-            Frames_to_Encode: '',
-            ResWidth: '',
-            ResHeight: '',
-            OutputFile: '',
-            Encoder: '',
-            Bitrate: '',
-            YuvFormat: '',
-            EncoderMode: '',
-            Quality: '',
-            Depth: '',
-            Gamut: '',
-            QPISlice: '',
-            QPPSlice: '',
-            QPBSlice: '',
-            IntraPeriod: '',
-            BFrames: '',
-        });
-        setSelectedEncoders([]);
-    };
 
     const handleFormChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleRunExperiment = () => {
-        console.log("Run Experiment clicked", formData, selectedEncoders);
-        createExperimentCall(formData, selectedEncoders);
-    };
-
-    const handleSaveConfig = () => {
-        console.log("Save Config clicked", formData);
-        updateExperimentCall(formData.experimentId, formData, selectedEncoders);
-    };
-
-    const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders((prev) =>
-            prev.includes(encoder)
-                ? prev.filter((e) => e !== encoder)
-                : [...prev, encoder]
-        );
+        console.log("Run Experiment clicked", formData);
+        // Call your function to create the experiment here
     };
 
     return (
@@ -171,150 +67,130 @@ export default function ExperimentManagerUI() {
 
                 <div className="ui-grid">
                     {activeTab === 'create' && (
-                        <>
-                            <div className="ui-form-section">
-                                <h2>Create New Experiment (Main Form)</h2>
+                        <div className="ui-form-section">
+                            <h2>Create New Experiment</h2>
+                            <div className="ui-form">
+                                <label className="ui-label">
+                                    Encoder
+                                    <Select.Root
+                                        value={formData.Encoder}
+                                        onValueChange={(val) => handleFormChange('Encoder', val)}
+                                    >
+                                        <Select.Trigger className="ui-select">
+                                            <Select.Value placeholder="Select Encoder" />
+                                        </Select.Trigger>
+                                        <Select.Portal>
+                                            <Select.Content className="ui-dropdown">
+                                                <Select.Viewport>
+                                                    {encoders.map((encoder) => (
+                                                        <Select.Item key={encoder.id} value={encoder.name} className="ui-option">
+                                                            <Select.ItemText>{encoder.name}</Select.ItemText>
+                                                        </Select.Item>
+                                                    ))}
+                                                </Select.Viewport>
+                                            </Select.Content>
+                                        </Select.Portal>
+                                    </Select.Root>
+                                </label>
 
-                                <div className="ui-form">
-                                    <label className="ui-checkbox">
-                                        <Checkbox.Root
-                                            className="checkbox-box"
-                                            checked={useJsonConfig}
-                                            onCheckedChange={(val) => setUseJsonConfig(!!val)}
-                                        >
-                                            <Checkbox.Indicator>
-                                                <CheckIcon className="checkbox-check" />
-                                            </Checkbox.Indicator>
-                                        </Checkbox.Root>
-                                        <span>Upload JSON Config (Checkbox)</span>
-                                    </label>
+                                <label className="ui-label">
+                                    Bitrate
+                                    <Select.Root
+                                        value={formData.Bitrate}
+                                        onValueChange={(val) => handleFormChange('Bitrate', val)}
+                                    >
+                                        <Select.Trigger className="ui-select">
+                                            <Select.Value placeholder="Select Bitrate" />
+                                        </Select.Trigger>
+                                        <Select.Portal>
+                                            <Select.Content className="ui-dropdown">
+                                                <Select.Viewport>
+                                                    {bitrates.map((bitrate) => (
+                                                        <Select.Item key={bitrate} value={bitrate} className="ui-option">
+                                                            <Select.ItemText>{bitrate}</Select.ItemText>
+                                                        </Select.Item>
+                                                    ))}
+                                                </Select.Viewport>
+                                            </Select.Content>
+                                        </Select.Portal>
+                                    </Select.Root>
+                                </label>
 
-                                    {!useJsonConfig && (
-                                        <div className="ui-select-grid">
-                                            {Object.keys(dropdownOptions).map((key) => (
-                                                <label key={key} className="ui-label">
-                                                    {key.charAt(0).toUpperCase() + key.slice(1)} {/* Capitalize the label */}
-                                                    <Select.Root
-                                                        value={formData[key]}
-                                                        onValueChange={(val) => handleFormChange(key, val)}
-                                                    >
-                                                        <Select.Trigger className="ui-select">
-                                                            <Select.Value placeholder="Select..." />
-                                                        </Select.Trigger>
-                                                        <Select.Portal>
-                                                            <Select.Content className="ui-dropdown">
-                                                                <Select.Viewport>
-                                                                    {(dropdownOptions[key] || []).map((option) => (
-                                                                        <Select.Item key={option} value={option} className="ui-option">
-                                                                            <Select.ItemText>{option}</Select.ItemText>
-                                                                        </Select.Item>
-                                                                    ))}
-                                                                </Select.Viewport>
-                                                            </Select.Content>
-                                                        </Select.Portal>
-                                                    </Select.Root>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
+                                <label className="ui-label">
+                                    QP
+                                    <Select.Root
+                                        value={formData.QP}
+                                        onValueChange={(val) => handleFormChange('QP', val)}
+                                    >
+                                        <Select.Trigger className="ui-select">
+                                            <Select.Value placeholder="Select QP" />
+                                        </Select.Trigger>
+                                        <Select.Portal>
+                                            <Select.Content className="ui-dropdown">
+                                                <Select.Viewport>
+                                                    {qps.map((qp) => (
+                                                        <Select.Item key={qp} value={qp} className="ui-option">
+                                                            <Select.ItemText>{qp}</Select.ItemText>
+                                                        </Select.Item>
+                                                    ))}
+                                                </Select.Viewport>
+                                            </Select.Content>
+                                        </Select.Portal>
+                                    </Select.Root>
+                                </label>
 
-                                    <div className="ui-buttons">
-                                        <button onClick={handleRunExperiment}>Run Experiment</button>
-                                        <button onClick={handleSaveConfig}>Save Config</button>
-                                        <button onClick={handleReset}>Reset Form</button>
-                                    </div>
+                                <label className="ui-label">
+                                    Mode
+                                    <Select.Root
+                                        value={formData.Mode}
+                                        onValueChange={(val) => handleFormChange('Mode', val)}
+                                    >
+                                        <Select.Trigger className="ui-select">
+                                            <Select.Value placeholder="Select Mode" />
+                                        </Select.Trigger>
+                                        <Select.Portal>
+                                            <Select.Content className="ui-dropdown">
+                                                <Select.Viewport>
+                                                    {modes.map((mode) => (
+                                                        <Select.Item key={mode} value={mode} className="ui-option">
+                                                            <Select.ItemText>{mode}</Select.ItemText>
+                                                        </Select.Item>
+                                                    ))}
+                                                </Select.Viewport>
+                                            </Select.Content>
+                                        </Select.Portal>
+                                    </Select.Root>
+                                </label>
+
+                                <label className="ui-label">
+                                    Network Condition
+                                    <Select.Root
+                                        value={formData.NetworkCondition}
+                                        onValueChange={(val) => handleFormChange('NetworkCondition', val)}
+                                    >
+                                        <Select.Trigger className="ui-select">
+                                            <Select.Value placeholder="Select Network Condition" />
+                                        </Select.Trigger>
+                                        <Select.Portal>
+                                            <Select.Content className="ui-dropdown">
+                                                <Select.Viewport>
+                                                    {networkConditions.map((condition) => (
+                                                        <Select.Item key={condition} value={condition} className="ui-option">
+                                                            <Select.ItemText>{condition}</Select.ItemText>
+                                                        </Select.Item>
+                                                    ))}
+                                                </Select.Viewport>
+                                            </Select.Content>
+                                        </Select.Portal>
+                                    </Select.Root>
+                                </label>
+
+                                <div className="ui-buttons">
+                                    <button onClick={handleRunExperiment}>Run Experiment</button>
+                                    <button onClick={() => setFormData({ Encoder: '', Bitrate: '', QP: '', Mode: '', NetworkCondition: '' })}>Reset Form</button>
                                 </div>
                             </div>
-
-                            <div className="ui-encoder-section">
-                                <h3>Encoder Selection</h3>
-                                <div className="ui-toggle-group">
-                                    {['SVC', 'AVC', 'HEVC'].map((encoder) => (
-                                        <label key={encoder} className="ui-checkbox">
-                                            <Checkbox.Root
-                                                className="checkbox-box"
-                                                checked={selectedEncoders.includes(encoder)}
-                                                onCheckedChange={() => handleEncoderToggle(encoder)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                            <span>{encoder}</span>
-                                        </label>
-                                    ))}
-                                </div>
-
-                                {selectedEncoders.length > 0 && (
-                                    <div className="ui-select-grid">
-                                        <label className="ui-label">
-                                            Quantization Parameter (QP)
-                                            <Select.Root
-                                                value={formData.QP}
-                                                onValueChange={(val) => handleFormChange('QP', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select QP" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {dropdownOptions.QP.map((option) => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Encoder Mode
-                                            <Select.Root
-                                                value={formData.mode}
-                                                onValueChange={(val) => handleFormChange('mode', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Mode" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {dropdownOptions.mode.map((option) => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Network Condition
-                                            <Select.Root
-                                                value={formData.networkCondition}
-                                                onValueChange={(val) => handleFormChange('networkCondition', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Network" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {dropdownOptions.networkCondition.map((option) => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
-                                        </label>
-                                    </div>
-                                )}
-
-                                <button className="ui-log-button">Error & Log Panel</button>
-                            </div>
-                        </>
+                        </div>
                     )}
 
                     {activeTab === 'view' && <ViewExperiments />}
