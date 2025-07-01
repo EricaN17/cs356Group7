@@ -8,14 +8,15 @@ const {rejectResponse} = require("./ServiceResponse");
 
 
 
-const modelBuilder = (experimentInput, selectedEncoders) => {
+export const modelBuilder = (experimentInput) => {
+
     return new ExperimentModel(
         experimentInput.id,
         experimentInput.ownerId,
         Date.now(),
         experimentInput.description,
-        "Dummy",
-        "New",
+        experimentInput.experimentName,
+        "PENDING",
         new Set);
 };
 
@@ -25,13 +26,13 @@ const experimentConfigBuilder = (experimentInput) =>{
         .setNetworkTopologyId(experimentInput.NetworkTopologyId)
         .setDisruptionProfileId(experimentInput.networkDisruptionProfileId)
         .setEncodingParams({
-            Video: experimentInput.video,
+            Video: experimentInput.Video,
             Duration: experimentInput.Duration,
             FPS: experimentInput.temporalResolution,
             ResWidth: experimentInput.ResWidth,
             ResHeight: experimentInput.ResHeight,
             OutputFile: experimentInput.OutputFile,
-            Bitrate: experimentInput.bitrate,
+            Bitrate: experimentInput.Bitrate,
             YuvFormat: experimentInput.YuvFormat,
             EncoderMode : experimentInput.EncoderMode,
             Quality: experimentInput.Quality,
@@ -44,39 +45,61 @@ const experimentConfigBuilder = (experimentInput) =>{
         .build();
 }
 
+export const createExperimentSetConfig = async (
+    experimentInput,
+    modelHead
+) => {
+    console.log(modelHead instanceof ExperimentModel);
+    const entry =  experimentConfigBuilder(experimentInput);
+    modelHead.addToSet(entry);
+    console.log("Entry: ")
+    console.log(entry.EncodingParameters);
+};
 
-export const createExperimentCall = async (experimentInput, selectedEncoders) => {
+
+
+export const createExperimentCall = async (experimentInput,modelHead) => {
+
 
     try {
         console.log("First layer of call");
-        const modelHead = modelBuilder(experimentInput, selectedEncoders);
-        const config = experimentConfigBuilder(experimentInput)
-        modelHead.addToSet(config)
-        return await createExperiment({ modelHead });
+        const experiment = modelHead
+        if (experiment.getSet() == null) {
+            const config = experimentConfigBuilder(experimentInput)
+            experiment.addToSet(config)
+
+            experiment.videoSources = config.videoSources
+
+            experiment.encodingParameters = {
+                codec: config.EncoderMode,
+                bitrate: config.Bitrate,
+                resolution: config.spatialResolution
+            };
+
+            experiment.networkConditions = config.networkConditions
+
+            experiment.metricsRequested = config.metricsRequested
+        }
+        return await createExperiment(experiment.toNewJSON());
     } catch (e) {
         throw rejectResponse(e.message || 'Invalid input', e.status || 405);
     }
 };
 
-export const deleteExperimentCall = ({ experimentId }) => new Promise(
-  async (resolve, reject) => {
+export const deleteExperimentCall = async (experimentId) => {
     try {
-      resolve(deleteExperiment({
-        experimentId,
-      }));
+        return await deleteExperiment(experimentId);
     } catch (e) {
-      reject(rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
+        throw rejectResponse(e.message || 'Invalid input', e.status || 405);
     }
-  },
-);
-export const updateExperimentCall = async (experimentId,experimentInput,selectedEncoders) => {
+};
+export const updateExperimentCall = async (experimentId,expModel,selectedEncoders) => {
     try {
-        console.log("First layer of call");
-        const modelHead = modelBuilder(experimentInput, selectedEncoders);
-        return await updateExperiment({experimentId,experimentInput});
+        console.log("First layer of call",{experimentId});
+        const experiment = modelBuilder(expModel, selectedEncoders);
+        const config = experimentConfigBuilder(expModel)
+        experiment.addToSet(config)
+        // return await updateExperiment(experimentId,experiment.toJSON());
     } catch (e) {
         throw rejectResponse(e.message || 'Invalid input', e.status || 405);
     }

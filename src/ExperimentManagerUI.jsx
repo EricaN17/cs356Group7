@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -6,7 +6,14 @@ import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
 import './backend_modules/services/ExperimentsService.js'
-import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
+import {
+    createExperimentCall,
+    updateExperimentCall,
+    deleteExperimentCall,
+    modelBuilder,
+    createExperimentSetConfig
+} from "./backend_modules/services/ExperimentsService";
+import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
 
 export default function ExperimentManagerUI() {
 
@@ -49,9 +56,18 @@ export default function ExperimentManagerUI() {
         QPBSlice: '',
         IntraPeriod: '',
         BFrames: '',
+        VideoSources: [],
+        networkConditions: '',
+        metricsRequested: ''
     });
 
+    const modelHeadBuilderCall = () => {
+        console.log("Model created");
+        return modelBuilder(formData)
 
+    }
+    const modelHead = modelHeadBuilderCall();
+    console.log(modelHead instanceof ExperimentModel);
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
 
@@ -91,6 +107,9 @@ export default function ExperimentManagerUI() {
             QPBSlice: '',
             IntraPeriod: '',
             BFrames: '',
+            VideoSources: '',
+            networkConditions: '',
+            metricsRequested: ''
         });
         setSelectedEncoders([]);
     };
@@ -101,12 +120,20 @@ export default function ExperimentManagerUI() {
 
     const handleRunExperiment = () => {
         console.log("Run Experiment clicked", formData, selectedEncoders);
-        createExperimentCall(formData, selectedEncoders)
+        createExperimentCall(formData, modelHead)
+        console.log(modelHead.toNewJSON())
+        handleReset()
+    };
+
+    const handleDeleteExperiment = () => {
+        console.log("Delete Experiment clicked", formData.id);
+        deleteExperimentCall(formData.id)
     };
 
     const handleSaveConfig = () => {
         console.log("Save Config clicked", formData);
-        updateExperimentCall(formData.experimentId, formData,selectedEncoders);
+        createExperimentSetConfig(formData,modelHead)
+        console.log(modelHead.getSet())
     };
 
     const handleEncoderToggle = (encoder) => {
@@ -209,12 +236,13 @@ export default function ExperimentManagerUI() {
                                     )}
 
                                     <div className="ui-buttons">
-                                        <button onClick={() => console.log("Run Experiment", formData, selectedEncoders)}>Run Experiment</button>
-                                        <button onClick={() => console.log("Save Config", formData)}>Save Config</button>
+                                        <button onClick={handleRunExperiment}>Run Experiment</button>
+                                        <button onClick={handleSaveConfig}>Save Config</button>
                                         <button onClick={handleReset}>Reset Form</button>
                                     </div>
                                 </div>
                             </div>
+
 
                             <div className="ui-encoder-section">
                                 <h3>Encoder Selection</h3>

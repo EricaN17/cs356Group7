@@ -1,4 +1,3 @@
-// mockUsers.js
 export const mockUsers = [
     {
         id: '1',
@@ -32,10 +31,10 @@ export const mockUsers = [
     }
 ];
 
+
 export function setMockToken(username) {
     const user = mockUsers.find(u => u.username === username);
     if (!user) throw new Error(`Unknown mock user: ${username}`);
-
     const header = { alg: 'none', typ: 'JWT' };
     const payload = {
         sub: user.username,
@@ -47,7 +46,6 @@ export function setMockToken(username) {
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
-
     const token = `${encode(header)}.${encode(payload)}.`;
     window.localStorage.setItem('id_token', token);
 }

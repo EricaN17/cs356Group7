@@ -49,8 +49,8 @@ class EncodingParameters {
         this.BFrames = BFrames;
     }
 
-    toObject() {
-        return { ...this };
+    toString() {
+        return `Encoding: ${this.ResWidth}x${this.ResHeight}, ${this.Bitrate}, Mode: ${this.EncoderMode}`;
     }
 }
 
