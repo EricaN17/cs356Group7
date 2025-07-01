@@ -4,6 +4,7 @@ import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
+import NetworkProfileSelector from "./NetworkProfileSelector";
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -23,6 +24,7 @@ export default function ExperimentManagerUI() {
         bandwidth: ''
     });
 
+
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [activeTab, setActiveTab] = useState('create');
 
@@ -37,17 +39,21 @@ export default function ExperimentManagerUI() {
             op2: '',
             QP: '',
             mode: '',
-            networkCondition: '',
-            delay: '',
-            jitter: '',
-            packetLoss: '',
-            bandwidth: ''
+            networkCondition: ''
         });
         setSelectedEncoders([]);
     };
 
     const handleFormChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleRunExperiment = () => {
+        console.log("Run Experiment clicked", formData, selectedEncoders);
+    };
+
+    const handleSaveConfig = () => {
+        console.log("Save Config clicked", formData);
     };
 
     const handleEncoderToggle = (encoder) => {
@@ -219,6 +225,27 @@ export default function ExperimentManagerUI() {
                                                 </Select.Content>
                                             </Select.Root>
                                         </label>
+
+                                        <NetworkProfileSelector
+                                            selectedProfileId={formData.networkCondition}
+                                            onChange={(profile) => {
+                                                if (profile) {
+                                                    handleFormChange('networkCondition', profile.id.toString());
+                                                    handleFormChange('delay', profile.delay.toString());
+                                                    handleFormChange('jitter', profile.jitter.toString());
+                                                    handleFormChange('packetLoss', profile.packetLoss.toString());
+                                                    handleFormChange('bandwidth', profile.bandwidth.toString());
+                                                } else {
+                                                    handleFormChange('networkCondition', '');
+                                                    handleFormChange('delay', '');
+                                                    handleFormChange('jitter', '');
+                                                    handleFormChange('packetLoss', '');
+                                                    handleFormChange('bandwidth', '');
+                                                }
+                                            }}
+                                        />
+
+
                                     </div>
                                 )}
 
