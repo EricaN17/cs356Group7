@@ -24,8 +24,27 @@ body {
     padding: 1rem 2rem;
     font-size: 1.5rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Push icon to right */
 }
 
+.user-button {
+    color: white;
+    background-color: var(--oxford-blue);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+.user-button:hover {
+    background-color: var(--silver-lake-blue);
+    color: white;
+}
 .ui-container {
     padding: 2rem;
 }

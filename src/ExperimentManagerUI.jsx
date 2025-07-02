@@ -6,6 +6,7 @@ import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
 import { createExperimentCall, updateExperimentCall } from "./backend_modules/services/ExperimentsService";
+import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -116,7 +117,13 @@ export default function ExperimentManagerUI() {
 
     return (
         <div className="ui-wrapper">
-            <div className="ui-header">OneClick Experiments Manager</div>
+            <div className="ui-header">
+                <h1>OneClick Experiments Manager</h1>
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User Profile">
+                    <AvatarIcon width="20" height="20" />
+                </a>
+            </div>
+            {/*<div className="ui-header">OneClick Experiments Manager</div>*/}
 
             <div className="ui-container">
                 <nav className="ui-nav">
