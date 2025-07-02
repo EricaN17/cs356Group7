@@ -5,12 +5,10 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api';
+import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api'; 
 import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
-
-
     const [videoFile, setVideoFile] = useState(null);
 
     const handleVideoChange = (e) => {
@@ -21,6 +19,7 @@ export default function ExperimentManagerUI() {
             alert("Please upload a valid .y4m video file.");
         }
     };
+
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
         experimentName: '',
@@ -80,6 +79,20 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
+    const handleFormChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleEncoderChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            encodingParameters: {
+                ...prev.encodingParameters,
+                [field]: value
+            }
+        }));
+    };
+
     const handleVideoSourceChange = (source) => {
         setSelectedVideoSources(prev =>
             prev.includes(source)
@@ -96,43 +109,16 @@ export default function ExperimentManagerUI() {
         );
     };
 
-    const handleReset = () => {
-        setUseJsonConfig(false);
-        setFormData({
-            experimentName: '',
-            description: '',
-            videoSources: [],
-            encodingParameters: {
-                bitDepth: '',
-                spatialResolution: '',
-                temporalResolution: '',
-                encoding: '',
-                op1: '',
-                op2: '',
-                QP: '',
-                mode: ''
-            },
-            networkConditions: {
-                delay: '',
-                jitter: '',
-                packetLoss: '',
-                bandwidth: ''
-            },
-            metricsRequested: [],
-            status: 'Pending'
-        });
-        setSelectedEncoders([]);
-        setSelectedVideoSources([]);
-        setSelectedMetrics(['PSNR']);
-    };
-
-    const handleFormChange = (field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+    const handleEncoderToggle = (encoder) => {
+        setSelectedEncoders(prev =>
+            prev.includes(encoder)
+                ? prev.filter(e => e !== encoder)
+                : [...prev, encoder]
+        );
     };
 
     const handleRunExperiment = async () => {
-        console.log("Run Experiment clicked", formData, selectedEncoders);
-
+        console.log("Running Experiment with data:", formData, selectedEncoders, selectedVideoSources, selectedMetrics);
         const payload = new FormData();
 
         if (videoFile) {
@@ -156,26 +142,44 @@ export default function ExperimentManagerUI() {
         }
     };
 
-
-
-    const handleSaveConfig = () => {
-        console.log("Save Config clicked", formData);
-        updateExperimentCall(formData.experimentId, formData,selectedEncoders);
-    };
-
-    const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders((prev) =>
-            prev.includes(encoder)
-                ? prev.filter((e) => e !== encoder)
-                : [...prev, encoder]
-        );
+    const handleReset = () => {
+        setUseJsonConfig(false);
+        setFormData({
+            experimentName: '',
+            description: '',
+            videoSources: [],
+            encodingParameters: {
+                id: null,
+                name: '',
+                comment: '',
+                encoderType: '',
+                scalable: false,
+                noOfLayers: null,
+                path: '',
+                filename: '',
+                modeFileReq: false,
+                seqFileReq: false,
+                layersFileReq: false,
+            },
+            networkConditions: {
+                delay: '',
+                jitter: '',
+                packetLoss: '',
+                bandwidth: ''
+            },
+            metricsRequested: [],
+            status: 'Pending'
+        });
+        setSelectedEncoders([]);
+        setSelectedVideoSources([]);
+        setSelectedMetrics(['PSNR']);
     };
 
     return (
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User   Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
@@ -346,45 +350,96 @@ export default function ExperimentManagerUI() {
                                 {selectedEncoders.length > 0 && (
                                     <div className="ui-select-grid">
                                         <label className="ui-label">
-                                            Quantization Parameter (QP)
-                                            <Select.Root
-                                                value={formData.encodingParameters.QP}
-                                                onValueChange={(val) => handleFormChange('encodingParameters.QP', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select QP" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {['22', '27', '32', '37'].map(option => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
+                                            Encoder Comment
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.comment}
+                                                onChange={(e) => handleEncoderChange('comment', e.target.value)}
+                                            />
                                         </label>
 
                                         <label className="ui-label">
-                                            Encoder Mode
-                                            <Select.Root
-                                                value={formData.encodingParameters.mode}
-                                                onValueChange={(val) => handleFormChange('encodingParameters.mode', val)}
+                                            Encoder Type
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.encoderType}
+                                                onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Scalable
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.scalable}
+                                                onCheckedChange={(val) => handleEncoderChange('scalable', val)}
                                             >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Mode" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {['Intra Only', 'Low Delay', 'Random Access'].map(option => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Number of Layers
+                                            <input
+                                                type="number"
+                                                value={formData.encodingParameters.noOfLayers || ''}
+                                                onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Path
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.path}
+                                                onChange={(e) => handleEncoderChange('path', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Filename
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.filename}
+                                                onChange={(e) => handleEncoderChange('filename', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Mode File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.modeFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Sequence File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.seqFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Layers File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.layersFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
                                         </label>
                                     </div>
                                 )}
