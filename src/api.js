@@ -22,6 +22,35 @@ export const fetchEncoders = async () => {
     return await response.json();
 };
 
+// export const fetchEncoders = async () => {
+//     const response = await fetch(`${BASE_URL}/infrastructure/encoders`);
+//     if (!response.ok) {
+//         throw new Error('Failed to fetch encoders');
+//     }
+//     return await response.json();
+// };
+
+// export const fetchEncoderById = async (id) => {
+//
+//     const response = await fetch(`${API_BASE_URL}/infrastructure/encoders/${id}`);
+//     if (!response.ok) {
+//         throw new Error('Failed to fetch encoder');
+//     }
+//     return await response.json();
+// };
+
+
+export const fetchEncoderById = async (id) => {
+    const response = await fetch(`${API_BASE_URL}/infrastructure/encoders/${id}`, {
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to fetch encoder: ${errorData.detail || response.status}`);
+    }
+    return await response.json();
+};
+
 export const fetchExperiments = async () => {
     const response = await fetch(`${API_BASE_URL}/experiments`, {
         headers: getAuthHeaders(),
@@ -34,6 +63,8 @@ export const fetchExperiments = async () => {
 
     return await response.json();
 };
+
+
 
 export const fetchVideoSources = async () => {
     const response = await fetch(`${API_BASE_URL}/infrastructure/videos`, {

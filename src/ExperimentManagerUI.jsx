@@ -5,21 +5,11 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api'; 
+import { fetchEncoders, fetchVideoSources, fetchNetworkConditions, fetchEncoderById } from './api'; // Ensure this path is correct
 import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
     const [videoFile, setVideoFile] = useState(null);
-
-    const handleVideoChange = (e) => {
-        const file = e.target.files[0];
-        if (file && file.name.endsWith(".y4m")) {
-            setVideoFile(file);
-        } else {
-            alert("Please upload a valid .y4m video file.");
-        }
-    };
-
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
         experimentName: '',
@@ -79,18 +69,42 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
+    const handleVideoChange = (e) => {
+        const file = e.target.files[0];
+        if (file && file.name.endsWith(".y4m")) {
+            setVideoFile(file);
+        } else {
+            alert("Please upload a valid .y4m video file.");
+        }
+    };
+
     const handleFormChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleEncoderChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            encodingParameters: {
-                ...prev.encodingParameters,
-                [field]: value
-            }
-        }));
+    const handleEncoderChange = async (encoderId) => {
+        try {
+            const encoder = await fetchEncoderById(encoderId);
+            setFormData(prev => ({
+                ...prev,
+                encodingParameters: {
+                    id: encoder.id,
+                    name: encoder.name,
+                    comment: encoder.description,
+                    encoderType: encoder.encoderType,
+                    scalable: encoder.scalable,
+                    noOfLayers: encoder.maxLayers,
+                    path: encoder.encoderCode,
+                    filename: '',
+                    modeFileReq: encoder.modeFileReq,
+                    seqFileReq: encoder.seqFileReq,
+                    layersFileReq: encoder.layersFileReq,
+                }
+            }));
+        } catch (error) {
+            console.error("Error fetching encoder details:", error);
+            alert("Failed to fetch encoder details. Please try again.");
+        }
     };
 
     const handleVideoSourceChange = (source) => {
@@ -109,12 +123,15 @@ export default function ExperimentManagerUI() {
         );
     };
 
-    const handleEncoderToggle = (encoder) => {
+    const handleEncoderToggle = async (encoderId) => {
         setSelectedEncoders(prev =>
-            prev.includes(encoder)
-                ? prev.filter(e => e !== encoder)
-                : [...prev, encoder]
+            prev.includes(encoderId)
+                ? prev.filter(e => e !== encoderId)
+                : [...prev, encoderId]
         );
+
+        // Fetch encoder details when toggled
+        await handleEncoderChange(encoderId);
     };
 
     const handleRunExperiment = async () => {
@@ -335,8 +352,8 @@ export default function ExperimentManagerUI() {
                                         <label key={encoder.id} className="ui-checkbox">
                                             <Checkbox.Root
                                                 className="checkbox-box"
-                                                checked={selectedEncoders.includes(encoder.name)}
-                                                onCheckedChange={() => handleEncoderToggle(encoder.name)}
+                                                checked={selectedEncoders.includes(encoder.id)}
+                                                onCheckedChange={() => handleEncoderToggle(encoder.id)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
@@ -354,7 +371,7 @@ export default function ExperimentManagerUI() {
                                             <input
                                                 type="text"
                                                 value={formData.encodingParameters.comment}
-                                                onChange={(e) => handleEncoderChange('comment', e.target.value)}
+                                                onChange={(e) => handleFormChange('encodingParameters.comment', e.target.value)}
                                             />
                                         </label>
 
@@ -363,7 +380,7 @@ export default function ExperimentManagerUI() {
                                             <input
                                                 type="text"
                                                 value={formData.encodingParameters.encoderType}
-                                                onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
+                                                onChange={(e) => handleFormChange('encodingParameters.encoderType', e.target.value)}
                                             />
                                         </label>
 
@@ -371,7 +388,7 @@ export default function ExperimentManagerUI() {
                                             Scalable
                                             <Checkbox.Root
                                                 checked={formData.encodingParameters.scalable}
-                                                onCheckedChange={(val) => handleEncoderChange('scalable', val)}
+                                                onCheckedChange={(val) => handleFormChange('encodingParameters.scalable', val)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
@@ -384,7 +401,7 @@ export default function ExperimentManagerUI() {
                                             <input
                                                 type="number"
                                                 value={formData.encodingParameters.noOfLayers || ''}
-                                                onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
+                                                onChange={(e) => handleFormChange('encodingParameters.noOfLayers', e.target.value)}
                                             />
                                         </label>
 
@@ -393,7 +410,7 @@ export default function ExperimentManagerUI() {
                                             <input
                                                 type="text"
                                                 value={formData.encodingParameters.path}
-                                                onChange={(e) => handleEncoderChange('path', e.target.value)}
+                                                onChange={(e) => handleFormChange('encodingParameters.path', e.target.value)}
                                             />
                                         </label>
 
@@ -402,7 +419,7 @@ export default function ExperimentManagerUI() {
                                             <input
                                                 type="text"
                                                 value={formData.encodingParameters.filename}
-                                                onChange={(e) => handleEncoderChange('filename', e.target.value)}
+                                                onChange={(e) => handleFormChange('encodingParameters.filename', e.target.value)}
                                             />
                                         </label>
 
@@ -410,7 +427,7 @@ export default function ExperimentManagerUI() {
                                             Mode File Required
                                             <Checkbox.Root
                                                 checked={formData.encodingParameters.modeFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
+                                                onCheckedChange={(val) => handleFormChange('encodingParameters.modeFileReq', val)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
@@ -422,7 +439,7 @@ export default function ExperimentManagerUI() {
                                             Sequence File Required
                                             <Checkbox.Root
                                                 checked={formData.encodingParameters.seqFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
+                                                onCheckedChange={(val) => handleFormChange('encodingParameters.seqFileReq', val)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
@@ -434,7 +451,7 @@ export default function ExperimentManagerUI() {
                                             Layers File Required
                                             <Checkbox.Root
                                                 checked={formData.encodingParameters.layersFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
+                                                onCheckedChange={(val) => handleFormChange('encodingParameters.layersFileReq', val)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
