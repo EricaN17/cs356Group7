@@ -5,7 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api'; 
+import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
@@ -15,14 +15,17 @@ export default function ExperimentManagerUI() {
         description: '',
         videoSources: [],
         encodingParameters: {
-            bitDepth: '',
-            spatialResolution: '',
-            temporalResolution: '',
-            encoding: '',
-            op1: '',
-            op2: '',
-            QP: '',
-            mode: ''
+            id: null,
+            name: '',
+            comment: '',
+            encoderType: '',
+            scalable: false,
+            noOfLayers: null,
+            path: '',
+            filename: '',
+            modeFileReq: false,
+            seqFileReq: false,
+            layersFileReq: false,
         },
         networkConditions: {
             delay: '',
@@ -132,7 +135,7 @@ export default function ExperimentManagerUI() {
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User   Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
