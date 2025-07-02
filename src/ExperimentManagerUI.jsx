@@ -5,7 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api'; 
+import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
@@ -27,14 +27,17 @@ export default function ExperimentManagerUI() {
         description: '',
         videoSources: [],
         encodingParameters: {
-            bitDepth: '',
-            spatialResolution: '',
-            temporalResolution: '',
-            encoding: '',
-            op1: '',
-            op2: '',
-            QP: '',
-            mode: ''
+            id: null,
+            name: '',
+            comment: '',
+            encoderType: '',
+            scalable: false,
+            noOfLayers: null,
+            path: '',
+            filename: '',
+            modeFileReq: false,
+            seqFileReq: false,
+            layersFileReq: false,
         },
         networkConditions: {
             delay: '',
@@ -77,20 +80,6 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleEncoderChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            encodingParameters: {
-                ...prev.encodingParameters,
-                [field]: value
-            }
-        }));
-    };
-
     const handleVideoSourceChange = (source) => {
         setSelectedVideoSources(prev =>
             prev.includes(source)
@@ -107,19 +96,6 @@ export default function ExperimentManagerUI() {
         );
     };
 
-    const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders(prev =>
-            prev.includes(encoder)
-                ? prev.filter(e => e !== encoder)
-                : [...prev, encoder]
-        );
-    };
-
-    const handleRunExperiment = () => {
-        console.log("Running Experiment with data:", formData, selectedEncoders, selectedVideoSources, selectedMetrics);
-        // Call your createExperiment function here
-    };
-
     const handleReset = () => {
         setUseJsonConfig(false);
         setFormData({
@@ -127,17 +103,14 @@ export default function ExperimentManagerUI() {
             description: '',
             videoSources: [],
             encodingParameters: {
-                id: null,
-                name: '',
-                comment: '',
-                encoderType: '',
-                scalable: false,
-                noOfLayers: null,
-                path: '',
-                filename: '',
-                modeFileReq: false,
-                seqFileReq: false,
-                layersFileReq: false,
+                bitDepth: '',
+                spatialResolution: '',
+                temporalResolution: '',
+                encoding: '',
+                op1: '',
+                op2: '',
+                QP: '',
+                mode: ''
             },
             networkConditions: {
                 delay: '',
@@ -202,7 +175,7 @@ export default function ExperimentManagerUI() {
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User   Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
@@ -373,96 +346,45 @@ export default function ExperimentManagerUI() {
                                 {selectedEncoders.length > 0 && (
                                     <div className="ui-select-grid">
                                         <label className="ui-label">
-                                            Encoder Comment
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.comment}
-                                                onChange={(e) => handleEncoderChange('comment', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Encoder Type
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.encoderType}
-                                                onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Scalable
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.scalable}
-                                                onCheckedChange={(val) => handleEncoderChange('scalable', val)}
+                                            Quantization Parameter (QP)
+                                            <Select.Root
+                                                value={formData.encodingParameters.QP}
+                                                onValueChange={(val) => handleFormChange('encodingParameters.QP', val)}
                                             >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
+                                                <Select.Trigger className="ui-select">
+                                                    <Select.Value placeholder="Select QP" />
+                                                </Select.Trigger>
+                                                <Select.Content>
+                                                    <Select.Viewport>
+                                                        {['22', '27', '32', '37'].map(option => (
+                                                            <Select.Item key={option} value={option} className="ui-option">
+                                                                <Select.ItemText>{option}</Select.ItemText>
+                                                            </Select.Item>
+                                                        ))}
+                                                    </Select.Viewport>
+                                                </Select.Content>
+                                            </Select.Root>
                                         </label>
 
                                         <label className="ui-label">
-                                            Number of Layers
-                                            <input
-                                                type="number"
-                                                value={formData.encodingParameters.noOfLayers || ''}
-                                                onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Path
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.path}
-                                                onChange={(e) => handleEncoderChange('path', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Filename
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.filename}
-                                                onChange={(e) => handleEncoderChange('filename', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Mode File Required
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.modeFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
+                                            Encoder Mode
+                                            <Select.Root
+                                                value={formData.encodingParameters.mode}
+                                                onValueChange={(val) => handleFormChange('encodingParameters.mode', val)}
                                             >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Sequence File Required
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.seqFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Layers File Required
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.layersFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
+                                                <Select.Trigger className="ui-select">
+                                                    <Select.Value placeholder="Select Mode" />
+                                                </Select.Trigger>
+                                                <Select.Content>
+                                                    <Select.Viewport>
+                                                        {['Intra Only', 'Low Delay', 'Random Access'].map(option => (
+                                                            <Select.Item key={option} value={option} className="ui-option">
+                                                                <Select.ItemText>{option}</Select.ItemText>
+                                                            </Select.Item>
+                                                        ))}
+                                                    </Select.Viewport>
+                                                </Select.Content>
+                                            </Select.Root>
                                         </label>
                                     </div>
                                 )}
