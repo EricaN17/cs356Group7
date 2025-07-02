@@ -80,10 +80,6 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
     const handleVideoSourceChange = (source) => {
         setSelectedVideoSources(prev =>
             prev.includes(source)
@@ -98,19 +94,6 @@ export default function ExperimentManagerUI() {
                 ? prev.filter(m => m !== metric)
                 : [...prev, metric]
         );
-    };
-
-    const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders(prev =>
-            prev.includes(encoder)
-                ? prev.filter(e => e !== encoder)
-                : [...prev, encoder]
-        );
-    };
-
-    const handleRunExperiment = () => {
-        console.log("Running Experiment with data:", formData, selectedEncoders, selectedVideoSources, selectedMetrics);
-        // Call your createExperiment function here
     };
 
     const handleReset = () => {
