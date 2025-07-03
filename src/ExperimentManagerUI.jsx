@@ -5,7 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources } from './api';
+import { fetchEncoders, fetchVideoSources, fetchEncoderById } from './api'; // Import the new function
 import { AvatarIcon } from '@radix-ui/react-icons';
 import {
     createExperimentCall,
@@ -16,7 +16,6 @@ import {
 } from "./backend_modules/services/ExperimentsService";
 import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
 import { createExperiment } from './api';
-
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -52,16 +51,14 @@ export default function ExperimentManagerUI() {
     });
 
     const modelHeadBuilderCall = () => {
-        return modelBuilder(formData)
-    }
+        return modelBuilder(formData);
+    };
     const modelHead = modelHeadBuilderCall();
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [selectedMetrics, setSelectedMetrics] = useState(['PSNR']);
     const [activeTab, setActiveTab] = useState('create');
     const [selectedNetworkProfile, setSelectedNetworkProfile] = useState(null);
-
-
 
     const [encoders, setEncoders] = useState([]);
     const [videoOptions, setVideoOptions] = useState([]);
@@ -77,7 +74,6 @@ export default function ExperimentManagerUI() {
 
                 const fetchedVideoSources = await fetchVideoSources();
                 setVideoOptions(fetchedVideoSources);
-
             } catch (error) {
                 console.error("Error loading data:", error);
             }
@@ -86,10 +82,8 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
-    // at the top of your component:
     const handleFormChange = (eOrField, maybeValue) => {
         if (typeof eOrField === 'string') {
-            // Called with (field, value)
             const name = eOrField;
             const value = maybeValue;
 
@@ -131,7 +125,6 @@ export default function ExperimentManagerUI() {
         }
     };
 
-
     const handleEncoderChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -151,11 +144,32 @@ export default function ExperimentManagerUI() {
     };
 
     const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders(prev =>
-            prev.includes(encoder)
-                ? prev.filter(e => e !== encoder)
-                : [...prev, encoder]
-        );
+        setSelectedEncoders([encoder]); // Allow only one encoder to be selected
+    };
+
+    const handleEncoderSelect = async (encoderId) => {
+        try {
+            const encoderDetails = await fetchEncoderById(encoderId);
+            // Update your formData or state with the encoder details
+            setFormData(prev => ({
+                ...prev,
+                encodingParameters: {
+                    ...prev.encodingParameters,
+                    id: encoderDetails.id,
+                    name: encoderDetails.name,
+                    comment: encoderDetails.description, // Assuming you want to use description as a comment
+                    encoderType: encoderDetails.encoderType,
+                    scalable: encoderDetails.scalable,
+                    noOfLayers: encoderDetails.maxLayers,
+                    modeFileReq: encoderDetails.modeFileReq, // Set based on API response
+                    seqFileReq: encoderDetails.seqFileReq, // Set based on API response
+                    layersFileReq: encoderDetails.layersFileReq, // Set based on API response
+                }
+            }));
+        } catch (error) {
+            console.error("Error fetching encoder details:", error);
+            alert(`Failed to fetch encoder details: ${error.message}`);
+        }
     };
 
     const handleRunExperiment = async () => {
@@ -231,9 +245,7 @@ export default function ExperimentManagerUI() {
             }]
         };
 
-
-
-        console.log(payload)
+        console.log(payload);
         try {
             const response = await createExperiment(payload);
             console.log("Experiment created successfully:", response);
@@ -244,12 +256,10 @@ export default function ExperimentManagerUI() {
         }
     };
 
-
     const handleSaveConfig = () => {
-
         console.log("Save Config clicked", formData);
-        createExperimentSetConfig(formData, modelHead,payload)
-        console.log(modelHead.getSet())
+        createExperimentSetConfig(formData, modelHead, payload);
+        console.log(modelHead.getSet());
     };
 
     const handleReset = () => {
@@ -288,11 +298,23 @@ export default function ExperimentManagerUI() {
         setSelectedMetrics(['PSNR']);
     };
 
+    // Function to handle checkbox changes and log their values
+    const handleCheckboxChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            encodingParameters: {
+                ...prev.encodingParameters,
+                [field]: value
+            }
+        }));
+        console.log(`${field} is now ${value}`);
+    };
+
     return (
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
@@ -310,219 +332,219 @@ export default function ExperimentManagerUI() {
                 <div className="ui-grid">
                     {activeTab === 'create' && (
                         <>
-                            <div className="ui-form-section">
-                                <h2>Create New Experiment</h2>
+                        <div className="ui-form-section">
+                            <h2>Create New Experiment</h2>
 
-                                <div className="ui-form">
-                                    <label className="ui-checkbox">
+                            <div className="ui-form">
+                                <label className="ui-checkbox">
+                                    <Checkbox.Root
+                                        className="checkbox-box"
+                                        checked={useJsonConfig}
+                                        onCheckedChange={(val) => setUseJsonConfig(!!val)}
+                                    >
+                                        <Checkbox.Indicator>
+                                            <CheckIcon className="checkbox-check" />
+                                        </Checkbox.Indicator>
+                                    </Checkbox.Root>
+                                    <span>Upload JSON Config</span>
+                                </label>
+
+                                {!useJsonConfig && (
+                                    <>
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Experiment Name*
+                                                <input
+                                                    type="text"
+                                                    value={formData.experimentName}
+                                                    onChange={(e) => handleFormChange('experimentName', e.target.value)}
+                                                    required
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Description
+                                                <textarea
+                                                    value={formData.description}
+                                                    onChange={(e) => handleFormChange('description', e.target.value)}
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Video Title
+                                                <input
+                                                    type="text"
+                                                    value={formData.videoTitle}
+                                                    onChange={(e) => handleFormChange('videoTitle', e.target.value)}
+                                                    placeholder="Enter video title"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Status
+                                                <Select.Root
+                                                    value={formData.status}
+                                                    onValueChange={(val) => handleFormChange('status', val)}
+                                                >
+                                                    <Select.Trigger className="ui-select">
+                                                        <Select.Value />
+                                                    </Select.Trigger>
+                                                    <Select.Portal>
+                                                        <Select.Content className="ui-dropdown">
+                                                            <Select.Viewport>
+                                                                {statusOptions.map(option => (
+                                                                    <Select.Item key={option} value={option} className="ui-option">
+                                                                        <Select.ItemText>{option}</Select.ItemText>
+                                                                    </Select.Item>
+                                                                ))}
+                                                            </Select.Viewport>
+                                                        </Select.Content>
+                                                    </Select.Portal>
+                                                </Select.Root>
+                                            </label>
+                                        </div>
+
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Metrics
+                                                <div className="metrics-group">
+                                                    {metricsOptions.map(metric => (
+                                                        <label key={metric} className="ui-checkbox">
+                                                            <Checkbox.Root
+                                                                className="checkbox-box"
+                                                                checked={selectedMetrics.includes(metric)}
+                                                                onCheckedChange={() => handleMetricChange(metric)}
+                                                            >
+                                                                <Checkbox.Indicator>
+                                                                    <CheckIcon className="checkbox-check" />
+                                                                </Checkbox.Indicator>
+                                                            </Checkbox.Root>
+                                                            <span>{metric}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="ui-buttons">
+                                    <button type="button" onClick={handleRunExperiment}>Run Experiment</button>
+                                    <button type="button" onClick={handleReset}>Reset Form</button>
+                                    <button type="button" onClick={handleSaveConfig}>Save Config</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="ui-encoder-section">
+                            <h3>Encoder Selection</h3>
+                            <div className="ui-toggle-group">
+                                {encoders.map(encoder => (
+                                    <label key={encoder.id} className="ui-radio">
+                                        <input
+                                            type="radio"
+                                            name="encoder"
+                                            value={encoder.name}
+                                            checked={selectedEncoders.includes(encoder.name)}
+                                            onChange={() => {
+                                                handleEncoderToggle(encoder.name); // Allow only one encoder to be selected
+                                                handleEncoderSelect(encoder.id); // Fetch encoder details when selected
+                                            }}
+                                        />
+                                        <span>{encoder.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {selectedEncoders.length > 0 && (
+                                <div className="ui-select-grid">
+                                    <label className="ui-label">
+                                        Encoder Comment
+                                        <input
+                                            type="text"
+                                            value={formData.encodingParameters.comment}
+                                            onChange={(e) => handleEncoderChange('comment', e.target.value)}
+                                        />
+                                    </label>
+
+                                    <label className="ui-label">
+                                        Encoder Type
+                                        <input
+                                            type="text"
+                                            value={formData.encodingParameters.encoderType}
+                                            onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
+                                        />
+                                    </label>
+
+                                    <label className="ui-label">
+                                        Scalable
                                         <Checkbox.Root
-                                            className="checkbox-box"
-                                            checked={useJsonConfig}
-                                            onCheckedChange={(val) => setUseJsonConfig(!!val)}
+                                            checked={formData.encodingParameters.scalable}
+                                            onCheckedChange={(val) => handleEncoderChange('scalable', val)}
                                         >
                                             <Checkbox.Indicator>
                                                 <CheckIcon className="checkbox-check" />
                                             </Checkbox.Indicator>
                                         </Checkbox.Root>
-                                        <span>Upload JSON Config</span>
                                     </label>
 
-                                    {!useJsonConfig && (
-                                        <>
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Experiment Name*
-                                                    <input
-                                                        type="text"
-                                                        value={formData.experimentName}
-                                                        onChange={(e) => handleFormChange('experimentName', e.target.value)}
-                                                        required
-                                                    />
-                                                </label>
-                                            </div>
+                                    <label className="ui-label">
+                                        Number of Layers
+                                        <input
+                                            type="number"
+                                            value={formData.encodingParameters.noOfLayers || ''}
+                                            onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
+                                        />
+                                    </label>
 
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Description
-                                                    <textarea
-                                                        value={formData.description}
-                                                        onChange={(e) => handleFormChange('description', e.target.value)}
-                                                    />
-                                                </label>
-                                            </div>
-                                            <div>
-                                                <div className="ui-select-grid">
-                                                    <label className="ui-label">
-                                                        Video Title
-                                                        <input
-                                                            type="text"
-                                                            value={formData.videoTitle}
-                                                            onChange={(e) => handleFormChange('videoTitle', e.target.value)}
-                                                            placeholder="Enter video title"
-                                                        />
-                                                    </label>
-                                                </div>
+                                    <label className="ui-label">
+                                        Path
+                                        <input
+                                            type="text"
+                                            value={formData.encodingParameters.path}
+                                            onChange={(e) => handleEncoderChange('path', e.target.value)}
+                                        />
+                                    </label>
 
-                                            </div>
+                                    <label className="ui-label">
+                                        Filename
+                                        <input
+                                            type="text"
+                                            value={formData.encodingParameters.filename}
+                                            onChange={(e) => handleEncoderChange('filename', e.target.value)}
+                                        />
+                                    </label>
 
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Status
-                                                    <Select.Root
-                                                        value={formData.status}
-                                                        onValueChange={(val) => handleFormChange('status', val)}
-                                                    >
-                                                        <Select.Trigger className="ui-select">
-                                                            <Select.Value />
-                                                        </Select.Trigger>
-                                                        <Select.Portal>
-                                                            <Select.Content className="ui-dropdown">
-                                                                <Select.Viewport>
-                                                                    {statusOptions.map(option => (
-                                                                        <Select.Item key={option} value={option} className="ui-option">
-                                                                            <Select.ItemText>{option}</Select.ItemText>
-                                                                        </Select.Item>
-                                                                    ))}
-                                                                </Select.Viewport>
-                                                            </Select.Content>
-                                                        </Select.Portal>
-                                                    </Select.Root>
-                                                </label>
-                                            </div>
+                                    <label className="ui-label">
+                                        Mode File Required
+                                        <Checkbox.Root
+                                            checked={formData.encodingParameters.modeFileReq}
+                                            onCheckedChange={(val) => handleCheckboxChange('modeFileReq', val)}
+                                        >
+                                            <Checkbox.Indicator>
+                                                <CheckIcon className="checkbox-check" />
+                                            </Checkbox.Indicator>
+                                        </Checkbox.Root>
+                                    </label>
 
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Metrics
-                                                    <div className="metrics-group">
-                                                        {metricsOptions.map(metric => (
-                                                            <label key={metric} className="ui-checkbox">
-                                                                <Checkbox.Root
-                                                                    className="checkbox-box"
-                                                                    checked={selectedMetrics.includes(metric)}
-                                                                    onCheckedChange={() => handleMetricChange(metric)}
-                                                                >
-                                                                    <Checkbox.Indicator>
-                                                                        <CheckIcon className="checkbox-check" />
-                                                                    </Checkbox.Indicator>
-                                                                </Checkbox.Root>
-                                                                <span>{metric}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        </>
-                                    )}
+                                    <label className="ui-label">
+                                        Sequence File Required
+                                        <Checkbox.Root
+                                            checked={formData.encodingParameters.seqFileReq}
+                                            onCheckedChange={(val) => handleCheckboxChange('seqFileReq', val)}
+                                        >
+                                            <Checkbox.Indicator>
+                                                <CheckIcon className="checkbox-check" />
+                                            </Checkbox.Indicator>
+                                        </Checkbox.Root>
+                                    </label>
 
-                                    <div className="ui-buttons">
-                                        <button type="button" onClick={handleRunExperiment}>Run Experiment</button>
-                                        <button type="button" onClick={handleReset}>Reset Form</button>
-                                        <button type="button" onClick={handleSaveConfig}>Save Config</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="ui-encoder-section">
-                                <h3>Encoder Selection</h3>
-                                <div className="ui-toggle-group">
-                                    {encoders.map(encoder => (
-                                        <label key={encoder.id} className="ui-checkbox">
-                                            <Checkbox.Root
-                                                className="checkbox-box"
-                                                checked={selectedEncoders.includes(encoder.name)}
-                                                onCheckedChange={() => handleEncoderToggle(encoder.name)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                            <span>{encoder.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-
-                                {selectedEncoders.length > 0 && (
-                                    <div className="ui-select-grid">
-                                        <label className="ui-label">
-                                            Encoder Comment
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.comment}
-                                                onChange={(e) => handleEncoderChange('comment', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Encoder Type
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.encoderType}
-                                                onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Scalable
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.scalable}
-                                                onCheckedChange={(val) => handleEncoderChange('scalable', val)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Number of Layers
-                                            <input
-                                                type="number"
-                                                value={formData.encodingParameters.noOfLayers || ''}
-                                                onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Path
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.path}
-                                                onChange={(e) => handleEncoderChange('path', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Filename
-                                            <input
-                                                type="text"
-                                                value={formData.encodingParameters.filename}
-                                                onChange={(e) => handleEncoderChange('filename', e.target.value)}
-                                            />
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Mode File Required
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.modeFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                        </label>
-
-                                        <label className="ui-label">
-                                            Sequence File Required
-                                            <Checkbox.Root
-                                                checked={formData.encodingParameters.seqFileReq}
-                                                onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
-                                            >
-                                                <Checkbox.Indicator>
-                                                    <CheckIcon className="checkbox-check" />
-                                                </Checkbox.Indicator>
-                                            </Checkbox.Root>
-                                        </label>
 
                                         <label className="ui-label">
                                             Layers File Required
