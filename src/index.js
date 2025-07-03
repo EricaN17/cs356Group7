@@ -20,7 +20,7 @@ import App from './App';
 import { setMockToken } from './backend_modules/mockData/mockUsers.js';
 
 // Set the mock token for the 'admin' user once at app start
-setMockToken('admin');
+// setMockToken('admin');
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

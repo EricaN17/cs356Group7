@@ -1,7 +1,7 @@
-const API_BASE_URL = 'https://ui.uni.kylestevenson.dev'; // URL from the APIs
+const API_BASE_URL = 'https://api.uni.kylestevenson.dev'; // URL from the APIs
 
 const getAuthHeaders = () => {
-    const token = localStorage.getItem('id_token');
+    const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No token found, login first');
     return {
         Authorization: `Bearer ${token}`,
