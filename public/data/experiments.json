@@ -1,49 +1,58 @@
 [
-  {
-    "id": "exp123",
-    "experimentName": "Test Experiment",
-    "description": "Checking encoding under LTE",
-    "status": "Pending",
-    "videoId": "1",
-    "videoSources": [
-      {
-        "id": "1",
-        "title": "Sample Video",
-        "description": "A test Y4M video file",
-        "bitDepth": 10,
-        "path": "/videos/sample.y4m",
-        "format": "y4m",
-        "frameRate": 30,
-        "resolution": "1920x1080",
-        "createdDate": "2025-06-30T12:00:00Z",
-        "lastUpdatedBy": "admin"
+{
+  "ExperimentName": "EE-G6-testing",
+  "Description": "Testing full encoding parameters and network profile",
+  "status": "PENDING",
+  "Sequences": [
+    {
+      "NetworkTopologyId": 0,
+      "NetworkDisruptionProfileId": 1,
+      "EncodingParameters": {
+        "Video": "Beauty",
+        "Duration": "5s",
+        "Frames_to_Encode": 100,
+        "FPS": 30,
+        "ResWidth": 1920,
+        "ResHeight": 1080,
+        "OutputFile": "ID_1_encoded.yuv",
+        "Encoder": "H264",
+        "EncoderType": "Standard",
+        "Bitrate": 45020,
+        "YuvFormat": "4:0:0",
+        "EncoderMode": "RANDOM ACCESS",
+        "Quality": 27,
+        "BitDepth": 12,
+        "IntraPeriod": 1,
+        "BFrames": 2
+      },
+      "SequenceId": 14,
+      "NetworkDisruptionProfile": {
+        "networkName": "WiFi 5GHz",
+        "description": "Standard WiFi connection",
+        "packetLoss": 0.5,
+        "delay": 20,
+        "jitter": 5,
+        "bandwidth": 50,
+        "network_profile_id": 1
       }
-    ],
-    "encodingParameters": {
-      "id": 1,
-      "name": "libx264",
-      "comment": "baseline test",
-      "encoderType": "H.264",
-      "scalable": false,
-      "noOfLayers": 1,
-      "path": "/encoders/libx264",
-      "filename": "encode.sh",
-      "modeFileReq": false,
-      "seqFileReq": false,
-      "layersFileReq": false
-    },
-    "networkConditions": {
-      "networkName": "4G LTE",
-      "description": "Mobile connection",
-      "packetLoss": 1.2,
-      "delay": 100,
-      "jitter": 15,
-      "bandwidth": 20,
-      "network_profile_id": 2
-    },
-    "metricsRequested": [
-      "PSNR",
-      "SSIM"
-    ]
-  }
+    }
+  ],
+  "Id": 0,
+  "CreatedAt": "2025-07-03T16:00:00.000Z",
+  "OwnerId": 30,
+  "metricsRequested": ["PSNR", "VMAF"],
+  "videoSources": [
+    {
+      "title": "Beauty",
+      "description": "A high quality demo video",
+      "path": "/videos/beauty.y4m",
+      "format": "y4m",
+      "frameRate": 30,
+      "resolution": "1920x1080",
+      "createdDate": "2025-06-30T12:00:00Z",
+      "lastUpdatedBy": "admin",
+      "BitDepth": 12
+    }
+  ]
+}
 ]
