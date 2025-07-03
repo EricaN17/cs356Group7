@@ -15,6 +15,8 @@ import {
     createExperimentSetConfig
 } from "./backend_modules/services/ExperimentsService";
 import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
+import { createExperiment } from './api';
+
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -39,11 +41,11 @@ export default function ExperimentManagerUI() {
         networkConditions: {
             networkName: '',
             description: '',
-            packetLoss: '',
-            delay: '',
-            jitter: '',
-            bandwidth: '',
-            network_profile_id: '',
+            packetLoss: 0,
+            delay: 0,
+            jitter: 0,
+            bandwidth: 0,
+            network_profile_id: 0,
         },
         metricsRequested: [],
         status: 'Pending'
@@ -157,9 +159,6 @@ export default function ExperimentManagerUI() {
     };
 
     const handleRunExperiment = async () => {
-        console.log("Running Experiment with data:", formData, selectedEncoders, selectedMetrics);
-        const payload = new FormData();
-
         const selectedVideo = videoOptions.find(v => v.id.toString() === formData.videoId);
 
         if (!selectedVideo) {
@@ -167,48 +166,67 @@ export default function ExperimentManagerUI() {
             return;
         }
 
-        payload.append("selectedEncoders", JSON.stringify(selectedEncoders));
-
-        payload.append("title", selectedVideo.title);
-        payload.append("description", selectedVideo.description);
-        payload.append("bitDepth", selectedVideo.BitDepth.toString());
-        payload.append("path", selectedVideo.path);
-        payload.append("format", selectedVideo.format);
-        payload.append("frameRate", selectedVideo.frameRate.toString());
-        payload.append("resolution", selectedVideo.resolution);
-        payload.append("createdDate", selectedVideo.createdDate);
-        payload.append("lastUpdatedBy", selectedVideo.lastUpdatedBy);
-
-        const preparedFormData = {
-            ...formData,
-            videoSources: [selectedVideo],
+        const payload = {
+            ExperimentName: formData.experimentName,
+            Description: formData.description,
+            status: "PENDING",
+            Sequences: [{
+                NetworkTopologyId: 0, // Confirm if this should be dynamic
+                NetworkDisruptionProfileId: parseInt(formData.networkConditions.network_profile_id) || 0,
+                EncodingParameters: {
+                    id: formData.encodingParameters.id,
+                    name: formData.encodingParameters.name,
+                    comment: formData.encodingParameters.comment,
+                    encoderType: formData.encodingParameters.encoderType,
+                    scalable: formData.encodingParameters.scalable,
+                    noOfLayers: formData.encodingParameters.noOfLayers,
+                    path: formData.encodingParameters.path,
+                    filename: formData.encodingParameters.filename,
+                    modeFileReq: formData.encodingParameters.modeFileReq,
+                    seqFileReq: formData.encodingParameters.seqFileReq,
+                    layersFileReq: formData.encodingParameters.layersFileReq,
+                },
+                SequenceId: 14, // Confirm if this should be dynamic
+                NetworkDisruptionProfile: {
+                    networkName: formData.networkConditions.networkName,
+                    description: formData.networkConditions.description,
+                    packetLoss: parseFloat(formData.networkConditions.packetLoss),
+                    delay: parseInt(formData.networkConditions.delay),
+                    jitter: parseInt(formData.networkConditions.jitter),
+                    bandwidth: parseInt(formData.networkConditions.bandwidth),
+                    network_profile_id: parseInt(formData.networkConditions.network_profile_id) || 0,
+                }
+            }],
+            Id: 0, // Replace dynamically if needed
+            CreatedAt: new Date().toISOString(),
+            OwnerId: 30, // Replace dynamically if needed
+            metricsRequested: selectedMetrics,
+            videoSources: [{
+                title: selectedVideo.title,
+                description: selectedVideo.description,
+                bitDepth: selectedVideo.BitDepth,
+                path: selectedVideo.path,
+                format: selectedVideo.format,
+                frameRate: selectedVideo.frameRate,
+                resolution: selectedVideo.resolution,
+                createdDate: selectedVideo.createdDate,
+                lastUpdatedBy: selectedVideo.lastUpdatedBy
+            }]
         };
 
-        for (const key in preparedFormData) {
-            if (key !== "videoSources" && key !== "videoId") {
-                if (typeof preparedFormData[key] === 'object') {
-                    payload.append(key, JSON.stringify(preparedFormData[key]));
-                } else {
-                    payload.append(key, preparedFormData[key]);
-                }
-            }
-        }
-
-        for (const key in formData.networkConditions) {
-            payload.append(`networkConditions.${key}`, formData.networkConditions[key]);
-        }
 
 
-        payload.append("videoSources", JSON.stringify(preparedFormData.videoSources));
-
+        console.log(payload)
         try {
-            await createExperimentCall(formData,modelHead,payload);
+            const response = await createExperiment(payload);
+            console.log("Experiment created successfully:", response);
             alert("Experiment created successfully!");
         } catch (error) {
             console.error("Experiment creation failed:", error);
-            alert("Failed to create experiment.");
+            alert(`Failed to create experiment: ${error.message}`);
         }
     };
+
 
     const handleSaveConfig = () => {
 
@@ -240,11 +258,11 @@ export default function ExperimentManagerUI() {
             networkConditions: {
                 networkName: '',
                 description: '',
-                packetLoss: '',
-                delay: '',
-                jitter: '',
-                bandwidth: '',
-                network_profile_id: '',
+                packetLoss: 0,
+                delay: 0,
+                jitter: 0,
+                bandwidth: 0,
+                network_profile_id: 0,
             },
             metricsRequested: [],
             status: 'Pending'
@@ -509,21 +527,21 @@ export default function ExperimentManagerUI() {
                                     onChange={(profile) => {
                                         setSelectedNetworkProfile(profile);
                                         if (profile) {
-                                            handleFormChange('networkConditions.network_profile_id', profile.network_profile_id.toString());
+                                            handleFormChange('networkConditions.network_profile_id', parseInt(profile.network_profile_id));
                                             handleFormChange('networkConditions.networkName', profile.networkName);
                                             handleFormChange('networkConditions.description', profile.description);
-                                            handleFormChange('networkConditions.packetLoss', profile.packetLoss.toString());
-                                            handleFormChange('networkConditions.delay', profile.delay.toString());
-                                            handleFormChange('networkConditions.jitter', profile.jitter.toString());
-                                            handleFormChange('networkConditions.bandwidth', profile.bandwidth.toString());
+                                            handleFormChange('networkConditions.packetLoss', parseFloat(profile.packetLoss));
+                                            handleFormChange('networkConditions.delay', parseInt(profile.delay));
+                                            handleFormChange('networkConditions.jitter', parseInt(profile.jitter));
+                                            handleFormChange('networkConditions.bandwidth', parseInt(profile.bandwidth));
                                         } else {
-                                            handleFormChange('networkConditions.network_profile_id', '');
+                                            handleFormChange('networkConditions.network_profile_id', 0);
                                             handleFormChange('networkConditions.networkName', '');
                                             handleFormChange('networkConditions.description', '');
-                                            handleFormChange('networkConditions.packetLoss', '');
-                                            handleFormChange('networkConditions.delay', '');
-                                            handleFormChange('networkConditions.jitter', '');
-                                            handleFormChange('networkConditions.bandwidth', '');
+                                            handleFormChange('networkConditions.packetLoss', 0);
+                                            handleFormChange('networkConditions.delay', 0);
+                                            handleFormChange('networkConditions.jitter', 0);
+                                            handleFormChange('networkConditions.bandwidth', 0);
                                         }
                                     }}
                                 />
