@@ -14,6 +14,9 @@ export const fetchEncoders = async () => {
         headers: getAuthHeaders(),
     });
 
+   // const response = await fetch(`${process.env.PUBLIC_URL}/data/encoders.json`)
+
+
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to fetch encoders: ${errorData.detail || response.status}`);
@@ -27,9 +30,27 @@ export const fetchExperiments = async () => {
         headers: getAuthHeaders(),
     });
 
+    //const response = await fetch(`${process.env.PUBLIC_URL}/data/experiments.json`)
+
+
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to fetch experiments: ${errorData.detail || response.status}`);
+    }
+
+    return await response.json();
+};
+
+export const fetchNetworkProfiles = async () => {
+    const response = await fetch(`${API_BASE_URL}/infrastructure/networks`, {
+        headers: getAuthHeaders(),
+    });
+
+    // const response = await fetch(`${process.env.PUBLIC_URL}/data/network_profiles.json`)
+
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch network profiles: ${response.status}`);
     }
 
     return await response.json();
@@ -40,22 +61,11 @@ export const fetchVideoSources = async () => {
         headers: getAuthHeaders(),
     });
 
+    // const response = await fetch(`${process.env.PUBLIC_URL}/data/video.json`)
+
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to fetch video sources: ${errorData.detail || response.status}`);
-    }
-
-    return await response.json();
-};
-
-export const fetchNetworkConditions = async () => {
-    const response = await fetch(`${API_BASE_URL}/infrastructure/networks`, {
-        headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to fetch network conditions: ${errorData.detail || response.status}`);
     }
 
     return await response.json();

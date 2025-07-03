@@ -5,25 +5,15 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchNetworkConditions } from './api'; 
+import { fetchEncoders, fetchVideoSources } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
 
 export default function ExperimentManagerUI() {
-    const [videoFile, setVideoFile] = useState(null);
-
-    const handleVideoChange = (e) => {
-        const file = e.target.files[0];
-        if (file && file.name.endsWith(".y4m")) {
-            setVideoFile(file);
-        } else {
-            alert("Please upload a valid .y4m video file.");
-        }
-    };
-
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
         experimentName: '',
         description: '',
+        videoId: '',
         videoSources: [],
         encodingParameters: {
             id: null,
@@ -39,23 +29,27 @@ export default function ExperimentManagerUI() {
             layersFileReq: false,
         },
         networkConditions: {
+            networkName: '',
+            description: '',
+            packetLoss: '',
             delay: '',
             jitter: '',
-            packetLoss: '',
-            bandwidth: ''
+            bandwidth: '',
+            network_profile_id: '',
         },
         metricsRequested: [],
         status: 'Pending'
     });
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
-    const [selectedVideoSources, setSelectedVideoSources] = useState([]);
     const [selectedMetrics, setSelectedMetrics] = useState(['PSNR']);
     const [activeTab, setActiveTab] = useState('create');
+    const [selectedNetworkProfile, setSelectedNetworkProfile] = useState(null);
+
+
 
     const [encoders, setEncoders] = useState([]);
     const [videoOptions, setVideoOptions] = useState([]);
-    const [networkConditions, setNetworkConditions] = useState([]);
 
     const metricsOptions = ['PSNR', 'SSIM', 'VMAF', 'Bitrate', 'Latency'];
     const statusOptions = ['Pending', 'Running', 'Completed', 'Failed'];
@@ -69,8 +63,6 @@ export default function ExperimentManagerUI() {
                 const fetchedVideoSources = await fetchVideoSources();
                 setVideoOptions(fetchedVideoSources);
 
-                const fetchedNetworkConditions = await fetchNetworkConditions();
-                setNetworkConditions(fetchedNetworkConditions);
             } catch (error) {
                 console.error("Error loading data:", error);
             }
@@ -79,9 +71,51 @@ export default function ExperimentManagerUI() {
         loadData();
     }, []);
 
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    // at the top of your component:
+    const handleFormChange = (eOrField, maybeValue) => {
+        if (typeof eOrField === 'string') {
+            // Called with (field, value)
+            const name = eOrField;
+            const value = maybeValue;
+
+            if (name.includes('.')) {
+                const [parent, child] = name.split('.');
+                setFormData((prev) => ({
+                    ...prev,
+                    [parent]: {
+                        ...prev[parent],
+                        [child]: value
+                    }
+                }));
+            } else {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value
+                }));
+            }
+        } else {
+            const e = eOrField;
+            const { name, value, type, checked } = e.target;
+            const val = type === 'checkbox' ? checked : value;
+
+            if (name.includes('.')) {
+                const [parent, child] = name.split('.');
+                setFormData((prev) => ({
+                    ...prev,
+                    [parent]: {
+                        ...prev[parent],
+                        [child]: val
+                    }
+                }));
+            } else {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: val
+                }));
+            }
+        }
     };
+
 
     const handleEncoderChange = (field, value) => {
         setFormData(prev => ({
@@ -91,14 +125,6 @@ export default function ExperimentManagerUI() {
                 [field]: value
             }
         }));
-    };
-
-    const handleVideoSourceChange = (source) => {
-        setSelectedVideoSources(prev =>
-            prev.includes(source)
-                ? prev.filter(s => s !== source)
-                : [...prev, source]
-        );
     };
 
     const handleMetricChange = (metric) => {
@@ -118,20 +144,49 @@ export default function ExperimentManagerUI() {
     };
 
     const handleRunExperiment = async () => {
-        console.log("Running Experiment with data:", formData, selectedEncoders, selectedVideoSources, selectedMetrics);
+        console.log("Running Experiment with data:", formData, selectedEncoders, selectedMetrics);
         const payload = new FormData();
 
-        if (videoFile) {
-            payload.append("Video", videoFile);
-        }
+        const selectedVideo = videoOptions.find(v => v.id.toString() === formData.videoId);
 
-        for (const key in formData) {
-            if (key !== "Video") {
-                payload.append(key, formData[key]);
-            }
+        if (!selectedVideo) {
+            alert("Invalid video ID. Please enter a valid ID from the available videos.");
+            return;
         }
 
         payload.append("selectedEncoders", JSON.stringify(selectedEncoders));
+
+        payload.append("title", selectedVideo.title);
+        payload.append("description", selectedVideo.description);
+        payload.append("bitDepth", selectedVideo.bitDepth.toString());
+        payload.append("path", selectedVideo.path);
+        payload.append("format", selectedVideo.format);
+        payload.append("frameRate", selectedVideo.frameRate.toString());
+        payload.append("resolution", selectedVideo.resolution);
+        payload.append("createdDate", selectedVideo.createdDate);
+        payload.append("lastUpdatedBy", selectedVideo.lastUpdatedBy);
+
+        const preparedFormData = {
+            ...formData,
+            videoSources: [selectedVideo],
+        };
+
+        for (const key in preparedFormData) {
+            if (key !== "videoSources" && key !== "videoId") {
+                if (typeof preparedFormData[key] === 'object') {
+                    payload.append(key, JSON.stringify(preparedFormData[key]));
+                } else {
+                    payload.append(key, preparedFormData[key]);
+                }
+            }
+        }
+
+        for (const key in formData.networkConditions) {
+            payload.append(`networkConditions.${key}`, formData.networkConditions[key]);
+        }
+
+
+        payload.append("videoSources", JSON.stringify(preparedFormData.videoSources));
 
         try {
             await createExperimentCall(payload);
@@ -142,11 +197,13 @@ export default function ExperimentManagerUI() {
         }
     };
 
+
     const handleReset = () => {
         setUseJsonConfig(false);
         setFormData({
             experimentName: '',
             description: '',
+            videoId: '',
             videoSources: [],
             encodingParameters: {
                 id: null,
@@ -162,16 +219,18 @@ export default function ExperimentManagerUI() {
                 layersFileReq: false,
             },
             networkConditions: {
+                networkName: '',
+                description: '',
+                packetLoss: '',
                 delay: '',
                 jitter: '',
-                packetLoss: '',
-                bandwidth: ''
+                bandwidth: '',
+                network_profile_id: '',
             },
             metricsRequested: [],
             status: 'Pending'
         });
         setSelectedEncoders([]);
-        setSelectedVideoSources([]);
         setSelectedMetrics(['PSNR']);
     };
 
@@ -179,7 +238,7 @@ export default function ExperimentManagerUI() {
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
@@ -198,19 +257,7 @@ export default function ExperimentManagerUI() {
                     {activeTab === 'create' && (
                         <>
                             <div className="ui-form-section">
-                                <h2>Create New Experiment (Main Form)</h2>
-
-                                <div className="ui-upload-section">
-                                    <label className="ui-upload-label">
-                                        <span className="ui-upload-title">Upload Video (.y4m):</span>
-                                        <input
-                                            type="file"
-                                            accept=".y4m"
-                                            onChange={handleVideoChange}
-                                            className="ui-upload-input"
-                                        />
-                                    </label>
-                                </div>
+                                <h2>Create New Experiment</h2>
 
                                 <div className="ui-form">
                                     <label className="ui-checkbox">
@@ -249,6 +296,20 @@ export default function ExperimentManagerUI() {
                                                     />
                                                 </label>
                                             </div>
+                                            <div>
+                                                <div className="ui-select-grid">
+                                                    <label className="ui-label">
+                                                        Video ID
+                                                        <input
+                                                            type="number"
+                                                            value={formData.videoId || ''}
+                                                            onChange={(e) => handleFormChange('videoId', e.target.value)}
+                                                            placeholder="Enter numeric video ID"
+                                                        />
+                                                    </label>
+                                                </div>
+
+                                            </div>
 
                                             <div className="ui-select-grid">
                                                 <label className="ui-label">
@@ -272,28 +333,6 @@ export default function ExperimentManagerUI() {
                                                             </Select.Content>
                                                         </Select.Portal>
                                                     </Select.Root>
-                                                </label>
-                                            </div>
-
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Video Sources
-                                                    <div className="video-sources-group">
-                                                        {videoOptions.map(source => (
-                                                            <label key={source} className="ui-checkbox">
-                                                                <Checkbox.Root
-                                                                    className="checkbox-box"
-                                                                    checked={selectedVideoSources.includes(source)}
-                                                                    onCheckedChange={() => handleVideoSourceChange(source)}
-                                                                >
-                                                                    <Checkbox.Indicator>
-                                                                        <CheckIcon className="checkbox-check" />
-                                                                    </Checkbox.Indicator>
-                                                                </Checkbox.Root>
-                                                                <span>{source}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
                                                 </label>
                                             </div>
 
@@ -446,23 +485,29 @@ export default function ExperimentManagerUI() {
 
                                 <h3>Network Conditions</h3>
                                 <NetworkProfileSelector
-                                    selectedProfileId={formData.networkConditions.networkCondition}
+                                    selectedProfileId={selectedNetworkProfile?.network_profile_id?.toString() ?? ''}
                                     onChange={(profile) => {
+                                        setSelectedNetworkProfile(profile);
                                         if (profile) {
-                                            handleFormChange('networkConditions.networkCondition', profile.id.toString());
+                                            handleFormChange('networkConditions.network_profile_id', profile.network_profile_id.toString());
+                                            handleFormChange('networkConditions.networkName', profile.networkName);
+                                            handleFormChange('networkConditions.description', profile.description);
+                                            handleFormChange('networkConditions.packetLoss', profile.packetLoss.toString());
                                             handleFormChange('networkConditions.delay', profile.delay.toString());
                                             handleFormChange('networkConditions.jitter', profile.jitter.toString());
-                                            handleFormChange('networkConditions.packetLoss', profile.packetLoss.toString());
                                             handleFormChange('networkConditions.bandwidth', profile.bandwidth.toString());
                                         } else {
-                                            handleFormChange('networkConditions.networkCondition', '');
+                                            handleFormChange('networkConditions.network_profile_id', '');
+                                            handleFormChange('networkConditions.networkName', '');
+                                            handleFormChange('networkConditions.description', '');
+                                            handleFormChange('networkConditions.packetLoss', '');
                                             handleFormChange('networkConditions.delay', '');
                                             handleFormChange('networkConditions.jitter', '');
-                                            handleFormChange('networkConditions.packetLoss', '');
                                             handleFormChange('networkConditions.bandwidth', '');
                                         }
                                     }}
                                 />
+
                             </div>
                         </>
                     )}
