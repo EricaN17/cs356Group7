@@ -1,28 +1,49 @@
 [
   {
-    "id": "exp1",
-    "name": "4G Streaming Test",
-    "codec": "HEVC",
-    "bitrate": "4Mbps",
-    "resolution": "1080p",
-    "networkProfile": "4G Mobile",
-    "encoders": ["HEVC", "SVC"],
-    "delay": 70,
-    "jitter": 20,
-    "packetLoss": 5,
-    "bandwidth": 10
-  },
-  {
-    "id": "exp2",
-    "name": "Wi-Fi Home Test",
-    "codec": "AVC",
-    "bitrate": "2Mbps",
-    "resolution": "720p",
-    "networkProfile": "Wi-Fi (Home)",
-    "encoders": ["AVC"],
-    "delay": 30,
-    "jitter": 5,
-    "packetLoss": 1,
-    "bandwidth": 20
+    "id": "exp123",
+    "experimentName": "Test Experiment",
+    "description": "Checking encoding under LTE",
+    "status": "Pending",
+    "videoId": "1",
+    "videoSources": [
+      {
+        "id": "1",
+        "title": "Sample Video",
+        "description": "A test Y4M video file",
+        "bitDepth": 10,
+        "path": "/videos/sample.y4m",
+        "format": "y4m",
+        "frameRate": 30,
+        "resolution": "1920x1080",
+        "createdDate": "2025-06-30T12:00:00Z",
+        "lastUpdatedBy": "admin"
+      }
+    ],
+    "encodingParameters": {
+      "id": 1,
+      "name": "libx264",
+      "comment": "baseline test",
+      "encoderType": "H.264",
+      "scalable": false,
+      "noOfLayers": 1,
+      "path": "/encoders/libx264",
+      "filename": "encode.sh",
+      "modeFileReq": false,
+      "seqFileReq": false,
+      "layersFileReq": false
+    },
+    "networkConditions": {
+      "networkName": "4G LTE",
+      "description": "Mobile connection",
+      "packetLoss": 1.2,
+      "delay": 100,
+      "jitter": 15,
+      "bandwidth": 20,
+      "network_profile_id": 2
+    },
+    "metricsRequested": [
+      "PSNR",
+      "SSIM"
+    ]
   }
 ]

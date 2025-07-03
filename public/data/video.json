@@ -1,0 +1,14 @@
+[
+  {
+  "id": "1",
+  "title": "Sample Video",
+  "description": "A test Y4M video file",
+  "bitDepth": 10,
+  "path": "/videos/sample.y4m",
+  "format": "y4m",
+  "frameRate": 30,
+  "resolution": "1920x1080",
+  "createdDate": "2025-06-30T12:00:00Z",
+  "lastUpdatedBy": "admin"
+}
+]

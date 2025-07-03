@@ -1,0 +1,28 @@
+[
+  {
+    "id": "9b46bb45-5b97-4bd5-ba91-4a30c790e53c",
+    "name": "Encoder 1",
+    "description": "Description of Encoder 1",
+    "encoderType": "h264",
+    "encoderCode": null,
+    "layers": null,
+    "scalable": false,
+    "maxLayers": 1,
+    "modeFileReq": false,
+    "seqFileReq": false,
+    "layersFileReq": false
+  },
+  {
+    "id": "c584a8da-e446-4ae2-9b32-da6158559dd7",
+    "name": "Encoder 2",
+    "description": "Description of Encoder 2",
+    "encoderType": "h265",
+    "encoderCode": null,
+    "layers": null,
+    "scalable": true,
+    "maxLayers": 5,
+    "modeFileReq": false,
+    "seqFileReq": false,
+    "layersFileReq": false
+  }
+]

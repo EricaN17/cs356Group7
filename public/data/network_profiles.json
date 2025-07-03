@@ -1,0 +1,20 @@
+[
+  {
+    "networkName": "WiFi 5GHz",
+    "description": "Standard WiFi connection",
+    "packetLoss": 0.5,
+    "delay": 20,
+    "jitter": 5,
+    "bandwidth": 50,
+    "network_profile_id": 1
+  },
+  {
+    "networkName": "4G LTE",
+    "description": "Mobile connection",
+    "packetLoss": 1.2,
+    "delay": 100,
+    "jitter": 15,
+    "bandwidth": 20,
+    "network_profile_id": 2
+  }
+]

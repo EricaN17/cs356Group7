@@ -23,8 +23,27 @@ body {
     padding: 1rem 2rem;
     font-size: 1.5rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Push icon to right */
 }
 
+.user-button {
+    color: white;
+    background-color: var(--oxford-blue);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+.user-button:hover {
+    background-color: var(--silver-lake-blue);
+    color: white;
+}
 .ui-container {
     padding: 2rem;
 }
@@ -148,8 +167,7 @@ body {
     margin-top: 1.25rem;
 }
 
-.ui-buttons button,
-.ui-log-button {
+.ui-buttons button {
     background-color: var(--oxford-blue);
     color: white;
     padding: 0.6rem 1.2rem;
@@ -234,4 +252,43 @@ body {
 
 .ui-upload-input:hover {
     border-color: #999;
+}
+.ui-form-group {
+    margin-bottom: 1rem;
+}
+
+.ui-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.video-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metrics-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.video-sources-group,
+.metrics-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+}
+
+.ui-label textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
 }

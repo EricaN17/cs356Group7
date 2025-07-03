@@ -16,10 +16,8 @@ export function _readRawToken() {
 export function _decodeJwtPayload(token) {
     try {
         const parts = token.split('.');
-        if (parts.length < 2) throw new Error('Invalid JWT format');
-        let b64 = parts[1]
-            .replace(/-/g, '+')
-            .replace(/_/g, '/');
+        if (parts.length !== 3) throw new Error('Invalid JWT format');
+        let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
         while (b64.length % 4) b64 += '=';
         const jsonStr = atob(b64);
         return JSON.parse(jsonStr);
@@ -29,19 +27,29 @@ export function _decodeJwtPayload(token) {
     }
 }
 
+export async function loginAndStoreToken(username, password) {
+    const response = await axios.post('http://localhost:8000/auth/login', {
+        username,
+        password
+    }, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const token = response.data.token;
+    localStorage.setItem('id_token', token);
+    console.log('Stored valid token:', token);
+    return token;
+}
+
 export async function getCurrentUser() {
-    const token   = _readRawToken();
+    const token = _readRawToken();
     const payload = _decodeJwtPayload(token);
 
-    // —— MOCK SHORT-CIRCUIT ——
-    // If payload.sub matches one of your mockUsers, return it directly
     const mockUser = mockUsers.find(u => u.username === payload.sub);
     if (mockUser) {
         return { user: mockUser, token, payload };
     }
-    // ——————————————
 
-    // Otherwise fall back to the real backend call
     const username = payload.sub;
     const response = await axios.get(
         `${USER_API_BASE}/users/${username}`,

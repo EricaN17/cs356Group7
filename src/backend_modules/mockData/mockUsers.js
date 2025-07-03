@@ -40,7 +40,7 @@ export function setMockToken(username) {
     const payload = {
         sub: user.username,
         role: user.role,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 // 1 hour expiry
+        exp: Math.floor(Date.now() / 1000) + 60 * 60
     };
     const encode = obj =>
         btoa(JSON.stringify(obj))
@@ -49,5 +49,5 @@ export function setMockToken(username) {
             .replace(/=+$/, '');
 
     const token = `${encode(header)}.${encode(payload)}.`;
-    window.localStorage.setItem('id_token', token);
+    window.localStorage.setItem('id_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImZpcnN0X25hbWUiOiJzdHJpbmciLCJsYXN0X25hbWUiOiJzdHJpbmciLCJlbWFpbCI6InN0cmluZ3MiLCJpYXQiOjE3NTE1MDQ0NTEsImV4cCI6MTc1MTUxMTY1MX0.389tAR6NiYTiFUWSEDwx6WmYadj6zqZwPLw6sR2QvSg');
 }

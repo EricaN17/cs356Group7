@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import './ViewExperiments.css'; // ✅ make sure this CSS is imported
+import './ViewExperiments.css';
+import {fetchExperiments} from "./api";
 
 const ViewExperiments = () => {
     const [experiments, setExperiments] = useState([]);
 
     useEffect(() => {
-        fetch('/data/experiments.json')
-            .then((res) => {
-                if (!res.ok) throw new Error('Failed to fetch experiments');
-                return res.json();
-            })
-            .then((data) => setExperiments(data))
-            .catch((err) => console.error('Error loading experiments:', err));
+        const loadExperiments = async () => {
+            try {
+                const data = await fetchExperiments();
+                setExperiments(data);
+            } catch (err) {
+                console.error('Error loading experiments:', err);
+            }
+        };
+
+        loadExperiments();
     }, []);
+
 
     return (
         <div className="view-experiments">

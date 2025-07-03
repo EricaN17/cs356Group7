@@ -1,187 +1,301 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as Select from '@radix-ui/react-select';
 import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import './backend_modules/services/ExperimentsService.js'
-import {createExperimentCall,updateExperimentCall,deleteExperimentCall} from "./backend_modules/services/ExperimentsService";
+import { fetchEncoders, fetchVideoSources } from './api';
+import { AvatarIcon } from '@radix-ui/react-icons';
+import {
+    createExperimentCall,
+    updateExperimentCall,
+    deleteExperimentCall,
+    modelBuilder,
+    createExperimentSetConfig
+} from "./backend_modules/services/ExperimentsService";
+import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
+import { createExperiment } from './api';
+
 
 export default function ExperimentManagerUI() {
-
-
-    const [videoFile, setVideoFile] = useState(null);
-
-    const handleVideoChange = (e) => {
-        const file = e.target.files[0];
-        if (file && file.name.endsWith(".y4m")) {
-            setVideoFile(file);
-        } else {
-            alert("Please upload a valid .y4m video file.");
-        }
-    };
     const [useJsonConfig, setUseJsonConfig] = useState(false);
     const [formData, setFormData] = useState({
-        id: '',
-        OwnerId: '',
-        createdAt: '',
-        description: '',
         experimentName: '',
-        status: '',
-        bitDepth: '',
-        spatialResolution: '',
-        temporalResolution: '',
-        encoding: '',
-        op1: '',
-        op2: '',
-        QP: '',
-        mode: '',
-        networkCondition: '',
-        delay: '',
-        jitter: '',
-        packetLoss: '',
-        bandwidth: '',
-        Video: "",
-        Duration: "",
-        Frames_to_Encode: '',
-        ResWidth: '',
-        ResHeight: '',
-        OutputFile: '',
-        Encoder: '',
-        Bitrate: '',
-        YuvFormat: '',
-        EncoderMode: '',
-        Quality: '',
-        Depth: '',
-        Gamut: '',
-        QPISlice: '',
-        QPPSlice: '',
-        QPBSlice: '',
-        IntraPeriod: '',
-        BFrames: '',
+        description: '',
+        videoTitle: '',
+        videoSources: [],
+        encodingParameters: {
+            id: null,
+            name: '',
+            comment: '',
+            encoderType: '',
+            scalable: false,
+            noOfLayers: null,
+            path: '',
+            filename: '',
+            modeFileReq: false,
+            seqFileReq: false,
+            layersFileReq: false,
+        },
+        networkConditions: {
+            networkName: '',
+            description: '',
+            packetLoss: 0,
+            delay: 0,
+            jitter: 0,
+            bandwidth: 0,
+            network_profile_id: 0,
+        },
+        metricsRequested: [],
+        status: 'Pending'
     });
 
+    const modelHeadBuilderCall = () => {
+        return modelBuilder(formData)
+    }
+    const modelHead = modelHeadBuilderCall();
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
+    const [selectedMetrics, setSelectedMetrics] = useState(['PSNR']);
     const [activeTab, setActiveTab] = useState('create');
+    const [selectedNetworkProfile, setSelectedNetworkProfile] = useState(null);
 
-    const handleReset = () => {
-        setUseJsonConfig(false);
-        setFormData({
-            id: '',
-            OwnerId: '',
-            createdAt: '',
-            description: '',
-            experimentName: '',
-            status: '',
-            bitDepth: '',
-            spatialResolution: '',
-            temporalResolution: '',
-            encoding: '',
-            op1: '',
-            op2: '',
-            QP: '',
-            mode: '',
-            networkCondition: '',
-            Video: "",
-            Duration: "",
-            Frames_to_Encode: '',
-            ResWidth: '',
-            ResHeight: '',
-            OutputFile: '',
-            Encoder: '',
-            Bitrate: '',
-            YuvFormat: '',
-            EncoderMode: '',
-            Quality: '',
-            Depth: '',
-            Gamut: '',
-            QPISlice: '',
-            QPPSlice: '',
-            QPBSlice: '',
-            IntraPeriod: '',
-            BFrames: '',
-        });
-        setSelectedEncoders([]);
-    };
 
-    const handleFormChange = (field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    };
 
-    const handleRunExperiment = async () => {
-        console.log("Run Experiment clicked", formData, selectedEncoders);
+    const [encoders, setEncoders] = useState([]);
+    const [videoOptions, setVideoOptions] = useState([]);
 
-        const payload = new FormData();
+    const metricsOptions = ['PSNR', 'SSIM', 'VMAF', 'Bitrate', 'Latency'];
+    const statusOptions = ['Pending', 'Running', 'Completed', 'Failed'];
 
-        if (videoFile) {
-            payload.append("Video", videoFile);
-        }
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const fetchedEncoders = await fetchEncoders();
+                setEncoders(fetchedEncoders);
 
-        for (const key in formData) {
-            if (key !== "Video") {
-                payload.append(key, formData[key]);
+                const fetchedVideoSources = await fetchVideoSources();
+                setVideoOptions(fetchedVideoSources);
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    // at the top of your component:
+    const handleFormChange = (eOrField, maybeValue) => {
+        if (typeof eOrField === 'string') {
+            // Called with (field, value)
+            const name = eOrField;
+            const value = maybeValue;
+
+            if (name.includes('.')) {
+                const [parent, child] = name.split('.');
+                setFormData((prev) => ({
+                    ...prev,
+                    [parent]: {
+                        ...prev[parent],
+                        [child]: value
+                    }
+                }));
+            } else {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value
+                }));
+            }
+        } else {
+            const e = eOrField;
+            const { name, value, type, checked } = e.target;
+            const val = type === 'checkbox' ? checked : value;
+
+            if (name.includes('.')) {
+                const [parent, child] = name.split('.');
+                setFormData((prev) => ({
+                    ...prev,
+                    [parent]: {
+                        ...prev[parent],
+                        [child]: val
+                    }
+                }));
+            } else {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: val
+                }));
             }
         }
-
-        payload.append("selectedEncoders", JSON.stringify(selectedEncoders));
-
-        try {
-            await createExperimentCall(payload);
-            alert("Experiment created successfully!");
-        } catch (error) {
-            console.error("Experiment creation failed:", error);
-            alert("Failed to create experiment.");
-        }
     };
 
 
+    const handleEncoderChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            encodingParameters: {
+                ...prev.encodingParameters,
+                [field]: value
+            }
+        }));
+    };
 
-    const handleSaveConfig = () => {
-        console.log("Save Config clicked", formData);
-        updateExperimentCall(formData.experimentId, formData,selectedEncoders);
+    const handleMetricChange = (metric) => {
+        setSelectedMetrics(prev =>
+            prev.includes(metric)
+                ? prev.filter(m => m !== metric)
+                : [...prev, metric]
+        );
     };
 
     const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders((prev) =>
+        setSelectedEncoders(prev =>
             prev.includes(encoder)
-                ? prev.filter((e) => e !== encoder)
+                ? prev.filter(e => e !== encoder)
                 : [...prev, encoder]
         );
     };
 
-    const selectOptions = ["bitDepth", "spatialResolution", "temporalResolution", "encoding", "op1", "op2"];
-    const selectLabels = [
-        "Bit Depth (Input)",
-        "Spatial Resolution (Input Field)",
-        "Temporal Resolution",
-        "Encoding",
-        "OP (Slider)",
-        "OP (Slider)"
-    ];
+    const handleRunExperiment = async () => {
+        const selectedVideo = videoOptions.find(v => v.title === formData.videoTitle);
 
-    const selectDropdownValues = {
-        bitDepth: ['8-bit', '10-bit', '12-bit'],
-        spatialResolution: ['Auto', '720p', '1080p', '4K'],
-        temporalResolution: ['24fps', '30fps', '60fps'],
-        encoding: ['Auto', 'HEVC', 'AVC', 'VP9'],
-        op1: ['Option 1A', 'Option 1B'],
-        op2: ['Option 2A', 'Option 2B'],
+        if (!selectedVideo) {
+            alert("Invalid video ID. Please enter a valid ID from the available videos.");
+            return;
+        }
+
+        const payload = {
+            ExperimentName: formData.experimentName,
+            Description: formData.description,
+            status: "PENDING",
+            Sequences: [{
+                NetworkTopologyId: 0, // Confirm if this should be dynamic
+                NetworkDisruptionProfileId: parseInt(formData.networkConditions.network_profile_id) || 0,
+                EncodingParameters: {
+                    id: formData.encodingParameters.id,
+                    name: formData.encodingParameters.name,
+                    comment: formData.encodingParameters.comment,
+                    encoderType: formData.encodingParameters.encoderType,
+                    scalable: formData.encodingParameters.scalable,
+                    noOfLayers: formData.encodingParameters.noOfLayers,
+                    path: formData.encodingParameters.path,
+                    filename: formData.encodingParameters.filename,
+                    modeFileReq: formData.encodingParameters.modeFileReq,
+                    seqFileReq: formData.encodingParameters.seqFileReq,
+                    layersFileReq: formData.encodingParameters.layersFileReq,
+
+                    Video: selectedVideo.title,                                 // from video
+                    Duration: selectedVideo.duration || "5s",                   // use "5s" if not available
+                    Frames_to_Encode: selectedVideo.framesToEncode || 100,      // use 100 if not available
+                    FPS: selectedVideo.frameRate,                               // from video
+                    ResWidth: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[0]) : 1920,  // parsed from video resolution
+                    ResHeight: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[1]) : 1080, // parsed from video resolution
+                    OutputFile: "ID_1_encoded.yuv",                             // static placeholder, replace dynamically later
+                    Encoder: formData.encodingParameters.name || "H264",        // from selected encoder
+                    EncoderType: formData.encodingParameters.encoderType || "Standard", // from encoding parameters
+                    Bitrate: selectedVideo.bitrate || 45020,                    // use 45020 if not available
+                    YuvFormat: selectedVideo.yuvFormat || "4:0:0",              // use "4:0:0" if not available
+                    EncoderMode: formData.encodingParameters.encoderMode || "RANDOM ACCESS", // from encoding parameters or default
+                    Quality: selectedVideo.quality || 27,                       // use 27 if not available
+                    BitDepth: selectedVideo.bitDepth || 12,                     // use 12 if not available
+                    IntraPeriod: selectedVideo.intraPeriod || 1,                // use 1 if not available
+                    BFrames: selectedVideo.bFrames || 2,                        // use 2 if not available
+                },
+                SequenceId: 14, // Confirm if this should be dynamic
+                NetworkDisruptionProfile: {
+                    networkName: formData.networkConditions.networkName,
+                    description: formData.networkConditions.description,
+                    packetLoss: parseFloat(formData.networkConditions.packetLoss),
+                    delay: parseInt(formData.networkConditions.delay),
+                    jitter: parseInt(formData.networkConditions.jitter),
+                    bandwidth: parseInt(formData.networkConditions.bandwidth),
+                    network_profile_id: parseInt(formData.networkConditions.network_profile_id) || 0,
+                }
+            }],
+            Id: 0, // Replace dynamically if needed
+            CreatedAt: new Date().toISOString(),
+            OwnerId: 30, // Replace dynamically if needed
+            metricsRequested: selectedMetrics,
+            videoSources: [{
+                title: selectedVideo.title,
+                description: selectedVideo.description,
+                bitDepth: selectedVideo.bitDepth,
+                path: selectedVideo.path,
+                format: selectedVideo.format,
+                frameRate: selectedVideo.frameRate,
+                resolution: selectedVideo.resolution,
+                createdDate: selectedVideo.createdDate,
+                lastUpdatedBy: selectedVideo.lastUpdatedBy
+            }]
+        };
+
+
+
+        console.log(payload)
+        try {
+            const response = await createExperiment(payload);
+            console.log("Experiment created successfully:", response);
+            alert("Experiment created successfully!");
+        } catch (error) {
+            console.error("Experiment creation failed:", error);
+            alert(`Failed to create experiment: ${error.message}`);
+        }
     };
 
-    const standardEncoderSelections = {
-        QP: ['22', '27', '32', '37'],
-        frameRate: ['24fps', '30fps', '60fps'],
-        resolution: ['720p', '1080p', '4K'],
-        mode: ['Intra Only', 'Low Delay', 'Random Access']
+
+    const handleSaveConfig = () => {
+
+        console.log("Save Config clicked", formData);
+        createExperimentSetConfig(formData, modelHead,payload)
+        console.log(modelHead.getSet())
     };
 
-    const isStandardEncoderSelected = selectedEncoders.some(enc => ['SVC', 'AVC', 'HEVC'].includes(enc));
+    const handleReset = () => {
+        setUseJsonConfig(false);
+        setFormData({
+            experimentName: '',
+            description: '',
+            videoTitle: '',
+            videoSources: [],
+            encodingParameters: {
+                id: null,
+                name: '',
+                comment: '',
+                encoderType: '',
+                scalable: false,
+                noOfLayers: null,
+                path: '',
+                filename: '',
+                modeFileReq: false,
+                seqFileReq: false,
+                layersFileReq: false,
+            },
+            networkConditions: {
+                networkName: '',
+                description: '',
+                packetLoss: 0,
+                delay: 0,
+                jitter: 0,
+                bandwidth: 0,
+                network_profile_id: 0,
+            },
+            metricsRequested: [],
+            status: 'Pending'
+        });
+        setSelectedEncoders([]);
+        setSelectedMetrics(['PSNR']);
+    };
 
     return (
         <div className="ui-wrapper">
-            <div className="ui-header">OneClick Experiments Manager</div>
+            <div className="ui-header">
+                <h1>OneClick Experiments Manager</h1>
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User Profile">
+                    <AvatarIcon width="20" height="20" />
+                </a>
+            </div>
 
             <div className="ui-container">
                 <nav className="ui-nav">
@@ -197,19 +311,7 @@ export default function ExperimentManagerUI() {
                     {activeTab === 'create' && (
                         <>
                             <div className="ui-form-section">
-                                <h2>Create New Experiment (Main Form)</h2>
-
-                                <div className="ui-upload-section">
-                                    <label className="ui-upload-label">
-                                        <span className="ui-upload-title">Upload Video (.y4m):</span>
-                                        <input
-                                            type="file"
-                                            accept=".y4m"
-                                            onChange={handleVideoChange}
-                                            className="ui-upload-input"
-                                        />
-                                    </label>
-                                </div>
+                                <h2>Create New Experiment</h2>
 
                                 <div className="ui-form">
                                     <label className="ui-checkbox">
@@ -222,25 +324,61 @@ export default function ExperimentManagerUI() {
                                                 <CheckIcon className="checkbox-check" />
                                             </Checkbox.Indicator>
                                         </Checkbox.Root>
-                                        <span>Upload JSON Config (Checkbox)</span>
+                                        <span>Upload JSON Config</span>
                                     </label>
 
                                     {!useJsonConfig && (
-                                        <div className="ui-select-grid">
-                                            {selectOptions.map((field, idx) => (
-                                                <label key={field} className="ui-label">
-                                                    {selectLabels[idx]}
+                                        <>
+                                            <div className="ui-select-grid">
+                                                <label className="ui-label">
+                                                    Experiment Name*
+                                                    <input
+                                                        type="text"
+                                                        value={formData.experimentName}
+                                                        onChange={(e) => handleFormChange('experimentName', e.target.value)}
+                                                        required
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            <div className="ui-select-grid">
+                                                <label className="ui-label">
+                                                    Description
+                                                    <textarea
+                                                        value={formData.description}
+                                                        onChange={(e) => handleFormChange('description', e.target.value)}
+                                                    />
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <div className="ui-select-grid">
+                                                    <label className="ui-label">
+                                                        Video Title
+                                                        <input
+                                                            type="text"
+                                                            value={formData.videoTitle}
+                                                            onChange={(e) => handleFormChange('videoTitle', e.target.value)}
+                                                            placeholder="Enter video title"
+                                                        />
+                                                    </label>
+                                                </div>
+
+                                            </div>
+
+                                            <div className="ui-select-grid">
+                                                <label className="ui-label">
+                                                    Status
                                                     <Select.Root
-                                                        value={formData[field]}
-                                                        onValueChange={(val) => handleFormChange(field, val)}
+                                                        value={formData.status}
+                                                        onValueChange={(val) => handleFormChange('status', val)}
                                                     >
                                                         <Select.Trigger className="ui-select">
-                                                            <Select.Value placeholder="Select..." />
+                                                            <Select.Value />
                                                         </Select.Trigger>
                                                         <Select.Portal>
                                                             <Select.Content className="ui-dropdown">
                                                                 <Select.Viewport>
-                                                                    {(selectDropdownValues[field] || []).map((option) => (
+                                                                    {statusOptions.map(option => (
                                                                         <Select.Item key={option} value={option} className="ui-option">
                                                                             <Select.ItemText>{option}</Select.ItemText>
                                                                         </Select.Item>
@@ -250,14 +388,36 @@ export default function ExperimentManagerUI() {
                                                         </Select.Portal>
                                                     </Select.Root>
                                                 </label>
-                                            ))}
-                                        </div>
+                                            </div>
+
+                                            <div className="ui-select-grid">
+                                                <label className="ui-label">
+                                                    Metrics
+                                                    <div className="metrics-group">
+                                                        {metricsOptions.map(metric => (
+                                                            <label key={metric} className="ui-checkbox">
+                                                                <Checkbox.Root
+                                                                    className="checkbox-box"
+                                                                    checked={selectedMetrics.includes(metric)}
+                                                                    onCheckedChange={() => handleMetricChange(metric)}
+                                                                >
+                                                                    <Checkbox.Indicator>
+                                                                        <CheckIcon className="checkbox-check" />
+                                                                    </Checkbox.Indicator>
+                                                                </Checkbox.Root>
+                                                                <span>{metric}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </>
                                     )}
 
                                     <div className="ui-buttons">
-                                        <button onClick={() => console.log("Run Experiment", formData, selectedEncoders)}>Run Experiment</button>
-                                        <button onClick={() => console.log("Save Config", formData)}>Save Config</button>
-                                        <button onClick={handleReset}>Reset Form</button>
+                                        <button type="button" onClick={handleRunExperiment}>Run Experiment</button>
+                                        <button type="button" onClick={handleReset}>Reset Form</button>
+                                        <button type="button" onClick={handleSaveConfig}>Save Config</button>
                                     </div>
                                 </div>
                             </div>
@@ -265,94 +425,147 @@ export default function ExperimentManagerUI() {
                             <div className="ui-encoder-section">
                                 <h3>Encoder Selection</h3>
                                 <div className="ui-toggle-group">
-                                    {['SVC', 'AVC', 'HEVC'].map((encoder) => (
-                                        <label key={encoder} className="ui-checkbox">
+                                    {encoders.map(encoder => (
+                                        <label key={encoder.id} className="ui-checkbox">
                                             <Checkbox.Root
                                                 className="checkbox-box"
-                                                checked={selectedEncoders.includes(encoder)}
-                                                onCheckedChange={() => handleEncoderToggle(encoder)}
+                                                checked={selectedEncoders.includes(encoder.name)}
+                                                onCheckedChange={() => handleEncoderToggle(encoder.name)}
                                             >
                                                 <Checkbox.Indicator>
                                                     <CheckIcon className="checkbox-check" />
                                                 </Checkbox.Indicator>
                                             </Checkbox.Root>
-                                            <span>{encoder}</span>
+                                            <span>{encoder.name}</span>
                                         </label>
                                     ))}
                                 </div>
 
-                                {isStandardEncoderSelected && (
+                                {selectedEncoders.length > 0 && (
                                     <div className="ui-select-grid">
                                         <label className="ui-label">
-                                            Quantization Parameter (QP)
-                                            <Select.Root
-                                                value={formData.QP}
-                                                onValueChange={(val) => handleFormChange('QP', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select QP" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {standardEncoderSelections.QP.map((option) => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
+                                            Encoder Comment
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.comment}
+                                                onChange={(e) => handleEncoderChange('comment', e.target.value)}
+                                            />
                                         </label>
 
                                         <label className="ui-label">
-                                            Encoder Mode
-                                            <Select.Root
-                                                value={formData.mode}
-                                                onValueChange={(val) => handleFormChange('mode', val)}
-                                            >
-                                                <Select.Trigger className="ui-select">
-                                                    <Select.Value placeholder="Select Mode" />
-                                                </Select.Trigger>
-                                                <Select.Content>
-                                                    <Select.Viewport>
-                                                        {standardEncoderSelections.mode.map((option) => (
-                                                            <Select.Item key={option} value={option} className="ui-option">
-                                                                <Select.ItemText>{option}</Select.ItemText>
-                                                            </Select.Item>
-                                                        ))}
-                                                    </Select.Viewport>
-                                                </Select.Content>
-                                            </Select.Root>
+                                            Encoder Type
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.encoderType}
+                                                onChange={(e) => handleEncoderChange('encoderType', e.target.value)}
+                                            />
                                         </label>
 
-                                        <NetworkProfileSelector
-                                            selectedProfileId={formData.networkCondition}
-                                            onChange={(profile) => {
-                                                if (profile) {
-                                                    handleFormChange('networkCondition', profile.id.toString());
-                                                    handleFormChange('delay', profile.delay.toString());
-                                                    handleFormChange('jitter', profile.jitter.toString());
-                                                    handleFormChange('packetLoss', profile.packetLoss.toString());
-                                                    handleFormChange('bandwidth', profile.bandwidth.toString());
-                                                } else {
-                                                    handleFormChange('networkCondition', '');
-                                                    handleFormChange('delay', '');
-                                                    handleFormChange('jitter', '');
-                                                    handleFormChange('packetLoss', '');
-                                                    handleFormChange('bandwidth', '');
-                                                }
-                                            }}
-                                        />
+                                        <label className="ui-label">
+                                            Scalable
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.scalable}
+                                                onCheckedChange={(val) => handleEncoderChange('scalable', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
 
+                                        <label className="ui-label">
+                                            Number of Layers
+                                            <input
+                                                type="number"
+                                                value={formData.encodingParameters.noOfLayers || ''}
+                                                onChange={(e) => handleEncoderChange('noOfLayers', e.target.value)}
+                                            />
+                                        </label>
 
+                                        <label className="ui-label">
+                                            Path
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.path}
+                                                onChange={(e) => handleEncoderChange('path', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Filename
+                                            <input
+                                                type="text"
+                                                value={formData.encodingParameters.filename}
+                                                onChange={(e) => handleEncoderChange('filename', e.target.value)}
+                                            />
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Mode File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.modeFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Sequence File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.seqFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+
+                                        <label className="ui-label">
+                                            Layers File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.layersFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
                                     </div>
                                 )}
 
-                                <button className="ui-log-button">Error & Log Panel</button>
+                                <h3>Network Conditions</h3>
+                                <NetworkProfileSelector
+                                    selectedProfileId={selectedNetworkProfile?.network_profile_id?.toString() ?? ''}
+                                    onChange={(profile) => {
+                                        setSelectedNetworkProfile(profile);
+                                        if (profile) {
+                                            handleFormChange('networkConditions.network_profile_id', parseInt(profile.network_profile_id));
+                                            handleFormChange('networkConditions.networkName', profile.networkName);
+                                            handleFormChange('networkConditions.description', profile.description);
+                                            handleFormChange('networkConditions.packetLoss', parseFloat(profile.packetLoss));
+                                            handleFormChange('networkConditions.delay', parseInt(profile.delay));
+                                            handleFormChange('networkConditions.jitter', parseInt(profile.jitter));
+                                            handleFormChange('networkConditions.bandwidth', parseInt(profile.bandwidth));
+                                        } else {
+                                            handleFormChange('networkConditions.network_profile_id', 0);
+                                            handleFormChange('networkConditions.networkName', '');
+                                            handleFormChange('networkConditions.description', '');
+                                            handleFormChange('networkConditions.packetLoss', 0);
+                                            handleFormChange('networkConditions.delay', 0);
+                                            handleFormChange('networkConditions.jitter', 0);
+                                            handleFormChange('networkConditions.bandwidth', 0);
+                                        }
+                                    }}
+                                />
+
                             </div>
                         </>
                     )}
-
                     {activeTab === 'view' && <ViewExperiments />}
                 </div>
             </div>

@@ -8,34 +8,38 @@ const {rejectResponse} = require("./ServiceResponse");
 
 
 
-const modelBuilder = (experimentInput, selectedEncoders) => {
+export const modelBuilder = (experimentInput) => {
+
     return new ExperimentModel(
         experimentInput.id,
         experimentInput.ownerId,
         Date.now(),
         experimentInput.description,
-        "Dummy",
-        "New",
+        experimentInput.experimentName,
+        experimentInput.status,
         new Set);
 };
 
-const experimentConfigBuilder = (experimentInput) =>{
+const experimentConfigBuilder = (experimentInput,videoData) =>{
     return builder
         .setSequenceId(0)
         .setNetworkTopologyId(experimentInput.NetworkTopologyId)
         .setDisruptionProfileId(experimentInput.networkDisruptionProfileId)
         .setEncodingParams({
-            Video: experimentInput.video,
+            Video: videoData.title,
             Duration: experimentInput.Duration,
-            FPS: experimentInput.temporalResolution,
+            Frames_to_Encode: experimentInput.Frames_to_Encode,
+            FPS: videoData.framerate,
             ResWidth: experimentInput.ResWidth,
             ResHeight: experimentInput.ResHeight,
             OutputFile: experimentInput.OutputFile,
-            Bitrate: experimentInput.bitrate,
+            Encoder: experimentInput.encodingParameters.name,
+            EncoderType: experimentInput.encodingParameters.encoderType,
+            Bitrate: experimentInput.Bitrate,
             YuvFormat: experimentInput.YuvFormat,
             EncoderMode : experimentInput.EncoderMode,
             Quality: experimentInput.Quality,
-            BitDepth: experimentInput.bitDepth,
+            BitDepth: videoData.BitDepth,
             IntraPeriod: experimentInput.IntraPeriod,
             BFrames: experimentInput.BFrames
 
@@ -44,35 +48,54 @@ const experimentConfigBuilder = (experimentInput) =>{
         .build();
 }
 
+export const createExperimentSetConfig = async (
+    experimentInput,
+    modelHead,
+    videoData
+) => {
+    console.log(modelHead instanceof ExperimentModel);
+    const entry =  experimentConfigBuilder(experimentInput,videoData);
+    modelHead.addToSet(entry);
+    console.log("Entry: ")
+    console.log(entry.EncodingParameters);
+};
 
-export const createExperimentCall = async (experimentInput, selectedEncoders) => {
 
+
+export const createExperimentCall = async (experimentInput,modelHead,videoData) => {
     try {
         console.log("First layer of call");
-        const modelHead = modelBuilder(experimentInput, selectedEncoders);
-        const config = experimentConfigBuilder(experimentInput)
-        modelHead.addToSet(config)
-        return await createExperiment({ modelHead });
+        const experiment = modelHead
+        if (experiment.getSet() == null) {
+            const config = experimentConfigBuilder(experimentInput)
+            experiment.addToSet(config)
+
+            experiment.videoSources = config.videoSources
+
+            experiment.encodingParameters = {
+                codec: config.EncoderMode,
+                bitrate: config.Bitrate,
+                resolution: config.resolution
+            };
+
+            experiment.networkConditions = config.networkConditions
+
+            experiment.metricsRequested = config.metricsRequested
+        }
+        return await createExperiment(experiment.toNewJSON());
     } catch (e) {
         throw rejectResponse(e.message || 'Invalid input', e.status || 405);
     }
 };
 
-export const deleteExperimentCall = ({ experimentId }) => new Promise(
-  async (resolve, reject) => {
+export const deleteExperimentCall = async (experimentId) => {
     try {
-      resolve(deleteExperiment({
-        experimentId,
-      }));
+        return await deleteExperiment(experimentId);
     } catch (e) {
-      reject(rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
+        throw rejectResponse(e.message || 'Invalid input', e.status || 405);
     }
-  },
-);
-export const updateExperimentCall = async (experimentId,experimentInput,selectedEncoders) => {
+};
+export const updateExperimentCall = async (experimentId,expModel,selectedEncoders) => {
     try {
         console.log("First layer of call");
         const modelHead = modelBuilder(experimentInput, selectedEncoders);
