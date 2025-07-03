@@ -5,7 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchEncoderById } from './api'; // Import the new function
+import { fetchEncoders, fetchVideoSources, fetchEncoderById } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
 import {
     createExperimentCall,
