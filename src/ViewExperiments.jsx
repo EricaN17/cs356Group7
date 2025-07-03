@@ -37,17 +37,28 @@ const ViewExperiments = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {experiments.map((exp) => (
-                        <tr key={exp.id}>
-                            <td>{exp.name}</td>
-                            <td>{exp.codec}</td>
-                            <td>{exp.resolution}</td>
-                            <td>{exp.bitrate}</td>
-                            <td>{exp.networkProfile}</td>
-                            <td>{exp.encoders.join(', ')}</td>
-                        </tr>
-                    ))}
+                    {experiments.map((exp) => {
+                        const sequence = exp.Sequences?.[0]; // take the first sequence
+                        const encodingParams = sequence?.EncodingParameters || {};
+                        const network = sequence?.NetworkDisruptionProfile;
+
+                        return (
+                            <tr key={exp.Id}>
+                                <td>{exp.ExperimentName}</td>
+                                <td>{encodingParams.Encoder || 'N/A'}</td>
+                                <td>
+                                    {encodingParams.ResWidth && encodingParams.ResHeight
+                                        ? `${encodingParams.ResWidth}x${encodingParams.ResHeight}`
+                                        : 'N/A'}
+                                </td>
+                                <td>{encodingParams.Bitrate || 'N/A'}</td>
+                                <td>{network?.networkName || 'N/A'}</td>
+                                <td>{encodingParams.EncoderType || 'N/A'}</td>
+                            </tr>
+                        );
+                    })}
                     </tbody>
+
                 </table>
             )}
         </div>
