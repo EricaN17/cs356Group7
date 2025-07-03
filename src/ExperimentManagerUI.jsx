@@ -7,6 +7,14 @@ import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
 import { fetchEncoders, fetchVideoSources } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
+import {
+    createExperimentCall,
+    updateExperimentCall,
+    deleteExperimentCall,
+    modelBuilder,
+    createExperimentSetConfig
+} from "./backend_modules/services/ExperimentsService";
+import ExperimentModel from "./backend_modules/ExperimentModel/ExperimentModel";
 
 export default function ExperimentManagerUI() {
     const [useJsonConfig, setUseJsonConfig] = useState(false);
@@ -40,6 +48,11 @@ export default function ExperimentManagerUI() {
         metricsRequested: [],
         status: 'Pending'
     });
+
+    const modelHeadBuilderCall = () => {
+        return modelBuilder(formData)
+    }
+    const modelHead = modelHeadBuilderCall();
 
     const [selectedEncoders, setSelectedEncoders] = useState([]);
     const [selectedMetrics, setSelectedMetrics] = useState(['PSNR']);
@@ -158,7 +171,7 @@ export default function ExperimentManagerUI() {
 
         payload.append("title", selectedVideo.title);
         payload.append("description", selectedVideo.description);
-        payload.append("bitDepth", selectedVideo.bitDepth.toString());
+        payload.append("bitDepth", selectedVideo.BitDepth.toString());
         payload.append("path", selectedVideo.path);
         payload.append("format", selectedVideo.format);
         payload.append("frameRate", selectedVideo.frameRate.toString());
@@ -189,7 +202,7 @@ export default function ExperimentManagerUI() {
         payload.append("videoSources", JSON.stringify(preparedFormData.videoSources));
 
         try {
-            await createExperimentCall(payload);
+            await createExperimentCall(formData,modelHead,payload);
             alert("Experiment created successfully!");
         } catch (error) {
             console.error("Experiment creation failed:", error);
@@ -197,6 +210,12 @@ export default function ExperimentManagerUI() {
         }
     };
 
+    const handleSaveConfig = () => {
+
+        console.log("Save Config clicked", formData);
+        createExperimentSetConfig(formData, modelHead,payload)
+        console.log(modelHead.getSet())
+    };
 
     const handleReset = () => {
         setUseJsonConfig(false);
@@ -304,7 +323,7 @@ export default function ExperimentManagerUI() {
                                                             type="number"
                                                             value={formData.videoId || ''}
                                                             onChange={(e) => handleFormChange('videoId', e.target.value)}
-                                                            placeholder="Enter numeric video ID"
+                                                            placeholder={formData.videoId || ''}
                                                         />
                                                     </label>
                                                 </div>
@@ -363,6 +382,7 @@ export default function ExperimentManagerUI() {
                                     <div className="ui-buttons">
                                         <button type="button" onClick={handleRunExperiment}>Run Experiment</button>
                                         <button type="button" onClick={handleReset}>Reset Form</button>
+                                        <button type="button" onClick={handleSaveConfig}>Save Config</button>
                                     </div>
                                 </div>
                             </div>
