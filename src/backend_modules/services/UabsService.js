@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { setMockToken as _setMockToken, mockUsers } from '../mockData/mockUsers.js';
 
-const USER_API_BASE = 'http://localhost:8000/api/v1';
+const USER_API_BASE = 'https://api.uni.kylestevenson.dev';
 
 export { _setMockToken as setMockToken, mockUsers };
 
 export function _readRawToken() {
-    const token = window.localStorage.getItem('id_token');
+    const token = window.localStorage.getItem('authToken');
     if (!token) {
         throw new Error('No auth token found. User is not logged in.');
     }
@@ -28,7 +28,7 @@ export function _decodeJwtPayload(token) {
 }
 
 export async function loginAndStoreToken(username, password) {
-    const response = await axios.post('http://localhost:8000/auth/login', {
+    const response = await axios.post('https://api.uni.kylestevenson.dev/auth/login', {
         username,
         password
     }, {
@@ -36,7 +36,7 @@ export async function loginAndStoreToken(username, password) {
     });
 
     const token = response.data.token;
-    localStorage.setItem('id_token', token);
+    localStorage.setItem('authToken', token);
     console.log('Stored valid token:', token);
     return token;
 }
