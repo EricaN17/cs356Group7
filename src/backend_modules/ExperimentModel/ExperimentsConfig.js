@@ -52,5 +52,10 @@ class EncodingParameters {
     toObject() {
         return { ...this };
     }
+
+    toString() {
+        return `Encoding Config → ${this.encoder} (${this.encoder_type}), ${this.res_width}x${this.res_height}, ${this.bit_rate}bps @ ${this.fps}fps`;
+    }
+
 }
 

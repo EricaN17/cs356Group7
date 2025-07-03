@@ -1,5 +1,9 @@
 import './ExperimentsConfig.js'
 class ExperimentModel {
+    videoSources;
+    encodingParameters;
+    networkConditions;
+    metricsRequested;
     constructor(id, ownerId, createdAt, description, experimentName, status, set = []) {
         this.id = id;
         this.ownerId = ownerId;
@@ -29,15 +33,27 @@ class ExperimentModel {
         };
     }
 
-    getSet() {
-        return this.set;
+    toNewJSON() {
+        return {
+            ExperimentName: this.experimentName || "string",
+            description: this.description || "string",
+            sequences: this.set instanceof Set && this.set.size > 0
+                ? [...this.set].map((sequence, index) => ({
+                    NetworkTopologyId: sequence.networkTopologyId ?? 1,
+                    NetworkDisruptionProfileId: sequence.networkDisruptionProfileId ?? 1,
+                    EncodingParameters: sequence.EncodingParameters,
+                    SequenceId: sequence.sequenceId ?? index + 1
+                }))
+                : [],
+            id: this.id ?? 11,
+            createdAt: this.createdAt || new Date().toISOString(),
+            ownerId: this.ownerId ?? 1,
+            status: this.status || "PENDING"
+        };
     }
 
-    setSet(newSet) {
-        if (!Array.isArray(newSet)) {
-            throw new Error("set must be an array.");
-        }
-        this.set = newSet;
+    getSet() {
+        return this.set;
     }
 
     addToSet(entry) {
