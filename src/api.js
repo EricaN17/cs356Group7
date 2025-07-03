@@ -26,11 +26,11 @@ export const fetchEncoders = async () => {
 };
 
 export const fetchExperiments = async () => {
-    // const response = await fetch(`${API_BASE_URL}/experiments`, {
-    //     headers: getAuthHeaders(),
-    // });
+    const response = await fetch(`${API_BASE_URL}/experiments`, {
+        headers: getAuthHeaders(),
+    });
 
-    const response = await fetch(`${process.env.PUBLIC_URL}/data/experiments.json`)
+    //const response = await fetch(`${process.env.PUBLIC_URL}/data/experiments.json`)
 
 
     if (!response.ok) {
