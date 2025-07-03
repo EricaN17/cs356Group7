@@ -144,11 +144,7 @@ export default function ExperimentManagerUI() {
     };
 
     const handleEncoderToggle = (encoder) => {
-        setSelectedEncoders(prev =>
-            prev.includes(encoder)
-                ? prev.filter(e => e !== encoder)
-                : [...prev, encoder]
-        );
+        setSelectedEncoders([encoder]); // Allow only one encoder to be selected
     };
 
     const handleEncoderSelect = async (encoderId) => {
@@ -165,7 +161,9 @@ export default function ExperimentManagerUI() {
                     encoderType: encoderDetails.encoderType,
                     scalable: encoderDetails.scalable,
                     noOfLayers: encoderDetails.maxLayers,
-                    // Add other properties as needed
+                    modeFileReq: encoderDetails.modeFileReq, // Set based on API response
+                    seqFileReq: encoderDetails.seqFileReq, // Set based on API response
+                    layersFileReq: encoderDetails.layersFileReq, // Set based on API response
                 }
             }));
         } catch (error) {
@@ -300,11 +298,23 @@ export default function ExperimentManagerUI() {
         setSelectedMetrics(['PSNR']);
     };
 
+    // Function to handle checkbox changes and log their values
+    const handleCheckboxChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            encodingParameters: {
+                ...prev.encodingParameters,
+                [field]: value
+            }
+        }));
+        console.log(`${field} is now ${value}`);
+    };
+
     return (
         <div className="ui-wrapper">
             <div className="ui-header">
                 <h1>OneClick Experiments Manager</h1>
-                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User Profile">
+                <a href="https://ui.uni.kylestevenson.dev/user" className="user-button" title="User  Profile">
                     <AvatarIcon width="20" height="20" />
                 </a>
             </div>
@@ -362,18 +372,17 @@ export default function ExperimentManagerUI() {
                                                 />
                                             </label>
                                         </div>
-                                        <div>
-                                            <div className="ui-select-grid">
-                                                <label className="ui-label">
-                                                    Video Title
-                                                    <input
-                                                        type="text"
-                                                        value={formData.videoTitle}
-                                                        onChange={(e) => handleFormChange('videoTitle', e.target.value)}
-                                                        placeholder="Enter video title"
-                                                    />
-                                                </label>
-                                            </div>
+
+                                        <div className="ui-select-grid">
+                                            <label className="ui-label">
+                                                Video Title
+                                                <input
+                                                    type="text"
+                                                    value={formData.videoTitle}
+                                                    onChange={(e) => handleFormChange('videoTitle', e.target.value)}
+                                                    placeholder="Enter video title"
+                                                />
+                                            </label>
                                         </div>
 
                                         <div className="ui-select-grid">
@@ -437,19 +446,17 @@ export default function ExperimentManagerUI() {
                             <h3>Encoder Selection</h3>
                             <div className="ui-toggle-group">
                                 {encoders.map(encoder => (
-                                    <label key={encoder.id} className="ui-checkbox">
-                                        <Checkbox.Root
-                                            className="checkbox-box"
+                                    <label key={encoder.id} className="ui-radio">
+                                        <input
+                                            type="radio"
+                                            name="encoder"
+                                            value={encoder.name}
                                             checked={selectedEncoders.includes(encoder.name)}
-                                            onCheckedChange={() => {
-                                                handleEncoderToggle(encoder.name);
+                                            onChange={() => {
+                                                handleEncoderToggle(encoder.name); // Allow only one encoder to be selected
                                                 handleEncoderSelect(encoder.id); // Fetch encoder details when selected
                                             }}
-                                        >
-                                            <Checkbox.Indicator>
-                                                <CheckIcon className="checkbox-check" />
-                                            </Checkbox.Indicator>
-                                        </Checkbox.Root>
+                                        />
                                         <span>{encoder.name}</span>
                                     </label>
                                 ))}
@@ -518,7 +525,7 @@ export default function ExperimentManagerUI() {
                                         Mode File Required
                                         <Checkbox.Root
                                             checked={formData.encodingParameters.modeFileReq}
-                                            onCheckedChange={(val) => handleEncoderChange('modeFileReq', val)}
+                                            onCheckedChange={(val) => handleCheckboxChange('modeFileReq', val)}
                                         >
                                             <Checkbox.Indicator>
                                                 <CheckIcon className="checkbox-check" />
@@ -530,7 +537,7 @@ export default function ExperimentManagerUI() {
                                         Sequence File Required
                                         <Checkbox.Root
                                             checked={formData.encodingParameters.seqFileReq}
-                                            onCheckedChange={(val) => handleEncoderChange('seqFileReq', val)}
+                                            onCheckedChange={(val) => handleCheckboxChange('seqFileReq', val)}
                                         >
                                             <Checkbox.Indicator>
                                                 <CheckIcon className="checkbox-check" />
@@ -538,20 +545,20 @@ export default function ExperimentManagerUI() {
                                         </Checkbox.Root>
                                     </label>
 
-                                    <label className="ui-label">
-                                        Layers File Required
-                                        <Checkbox.Root
-                                            checked={formData.encodingParameters.layersFileReq}
-                                            onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
-                                        >
-                                            <Checkbox.Indicator>
-                                                <CheckIcon className="checkbox-check" />
-                                            </Checkbox.Indicator>
-                                        </Checkbox.Root>
-                                    </label>
-                                </div>
-                            )}
 
+                                        <label className="ui-label">
+                                            Layers File Required
+                                            <Checkbox.Root
+                                                checked={formData.encodingParameters.layersFileReq}
+                                                onCheckedChange={(val) => handleEncoderChange('layersFileReq', val)}
+                                            >
+                                                <Checkbox.Indicator>
+                                                    <CheckIcon className="checkbox-check" />
+                                                </Checkbox.Indicator>
+                                            </Checkbox.Root>
+                                        </label>
+                                    </div>
+                                )}
 
                                 <h3>Network Conditions</h3>
                                 <NetworkProfileSelector

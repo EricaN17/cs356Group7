@@ -25,6 +25,17 @@ export const fetchEncoders = async () => {
     return await response.json();
 };
 
+export const fetchEncoderById = async (id) => {
+    const response = await fetch(`${API_BASE_URL}/infrastructure/encoders/${id}`, {
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to fetch encoder: ${errorData.detail || response.status}`);
+    }
+    return await response.json();
+};
+
 export const fetchExperiments = async () => {
     const response = await fetch(`${API_BASE_URL}/experiments`, {
         headers: getAuthHeaders(),
