@@ -23,7 +23,7 @@ export default function ExperimentManagerUI() {
     const [formData, setFormData] = useState({
         experimentName: '',
         description: '',
-        videoId: '',
+        videoTitle: '',
         videoSources: [],
         encodingParameters: {
             id: null,
@@ -159,7 +159,7 @@ export default function ExperimentManagerUI() {
     };
 
     const handleRunExperiment = async () => {
-        const selectedVideo = videoOptions.find(v => v.id.toString() === formData.videoId);
+        const selectedVideo = videoOptions.find(v => v.title === formData.videoTitle);
 
         if (!selectedVideo) {
             alert("Invalid video ID. Please enter a valid ID from the available videos.");
@@ -185,6 +185,23 @@ export default function ExperimentManagerUI() {
                     modeFileReq: formData.encodingParameters.modeFileReq,
                     seqFileReq: formData.encodingParameters.seqFileReq,
                     layersFileReq: formData.encodingParameters.layersFileReq,
+
+                    Video: selectedVideo.title,                                 // from video
+                    Duration: selectedVideo.duration || "5s",                   // use "5s" if not available
+                    Frames_to_Encode: selectedVideo.framesToEncode || 100,      // use 100 if not available
+                    FPS: selectedVideo.frameRate,                               // from video
+                    ResWidth: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[0]) : 1920,  // parsed from video resolution
+                    ResHeight: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[1]) : 1080, // parsed from video resolution
+                    OutputFile: "ID_1_encoded.yuv",                             // static placeholder, replace dynamically later
+                    Encoder: formData.encodingParameters.name || "H264",        // from selected encoder
+                    EncoderType: formData.encodingParameters.encoderType || "Standard", // from encoding parameters
+                    Bitrate: selectedVideo.bitrate || 45020,                    // use 45020 if not available
+                    YuvFormat: selectedVideo.yuvFormat || "4:0:0",              // use "4:0:0" if not available
+                    EncoderMode: formData.encodingParameters.encoderMode || "RANDOM ACCESS", // from encoding parameters or default
+                    Quality: selectedVideo.quality || 27,                       // use 27 if not available
+                    BitDepth: selectedVideo.bitDepth || 12,                     // use 12 if not available
+                    IntraPeriod: selectedVideo.intraPeriod || 1,                // use 1 if not available
+                    BFrames: selectedVideo.bFrames || 2,                        // use 2 if not available
                 },
                 SequenceId: 14, // Confirm if this should be dynamic
                 NetworkDisruptionProfile: {
@@ -204,7 +221,7 @@ export default function ExperimentManagerUI() {
             videoSources: [{
                 title: selectedVideo.title,
                 description: selectedVideo.description,
-                bitDepth: selectedVideo.BitDepth,
+                bitDepth: selectedVideo.bitDepth,
                 path: selectedVideo.path,
                 format: selectedVideo.format,
                 frameRate: selectedVideo.frameRate,
@@ -240,7 +257,7 @@ export default function ExperimentManagerUI() {
         setFormData({
             experimentName: '',
             description: '',
-            videoId: '',
+            videoTitle: '',
             videoSources: [],
             encodingParameters: {
                 id: null,
@@ -336,12 +353,12 @@ export default function ExperimentManagerUI() {
                                             <div>
                                                 <div className="ui-select-grid">
                                                     <label className="ui-label">
-                                                        Video ID
+                                                        Video Title
                                                         <input
-                                                            type="number"
-                                                            value={formData.videoId || ''}
-                                                            onChange={(e) => handleFormChange('videoId', e.target.value)}
-                                                            placeholder={formData.videoId || ''}
+                                                            type="text"
+                                                            value={formData.videoTitle}
+                                                            onChange={(e) => handleFormChange('videoTitle', e.target.value)}
+                                                            placeholder="Enter video title"
                                                         />
                                                     </label>
                                                 </div>
