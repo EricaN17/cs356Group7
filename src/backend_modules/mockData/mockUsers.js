@@ -49,5 +49,5 @@ export function setMockToken(username) {
             .replace(/=+$/, '');
 
     const token = `${encode(header)}.${encode(payload)}.`;
-    window.localStorage.setItem('id_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImZpcnN0X25hbWUiOiJzdHJpbmciLCJsYXN0X25hbWUiOiJzdHJpbmciLCJlbWFpbCI6InN0cmluZ3MiLCJpYXQiOjE3NTE1MDQ0NTEsImV4cCI6MTc1MTUxMTY1MX0.389tAR6NiYTiFUWSEDwx6WmYadj6zqZwPLw6sR2QvSg');
+    window.localStorage.setItem('id_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlcmljYSIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImZpcnN0X25hbWUiOiJzdHJpbmciLCJsYXN0X25hbWUiOiJzdHJpbmciLCJlbWFpbCI6InN0cmluZyIsImlhdCI6MTc1MTU2NDc1NSwiZXhwIjoxNzUxNTcxOTU1fQ.A-k6LK--w_fsZYolGMkWowmGtLMD474CQ0qNQGG3d1U');
 }
