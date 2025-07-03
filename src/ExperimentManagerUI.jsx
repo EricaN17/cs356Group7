@@ -64,7 +64,7 @@ export default function ExperimentManagerUI() {
     const [videoOptions, setVideoOptions] = useState([]);
 
     const metricsOptions = ['PSNR', 'SSIM', 'VMAF', 'Bitrate', 'Latency'];
-    const statusOptions = ['Pending', 'Running', 'Completed', 'Failed'];
+    const statusOptions = ['Pending'];
 
     useEffect(() => {
         const loadData = async () => {
