@@ -207,8 +207,8 @@ export default function ExperimentManagerUI() {
                     ResWidth: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[0]) : 1920,  // parsed from video resolution
                     ResHeight: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[1]) : 1080, // parsed from video resolution
                     OutputFile: "ID_1_encoded.yuv",                             // static placeholder, replace dynamically later
-                    Encoder: formData.encodingParameters.name || "H264",        // from selected encoder
-                    EncoderType: formData.encodingParameters.encoderType || "Standard", // from encoding parameters
+                    Encoder: formData.encodingParameters.encoderType || "H264",        // from selected encoder
+                    EncoderType: "Standard", // from encoding parameters
                     Bitrate: selectedVideo.bitrate || 45020,                    // use 45020 if not available
                     YuvFormat: selectedVideo.yuvFormat || "4:0:0",              // use "4:0:0" if not available
                     EncoderMode: formData.encodingParameters.encoderMode || "RANDOM ACCESS", // from encoding parameters or default
