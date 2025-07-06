@@ -5,7 +5,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import ViewExperiments from './ViewExperiments';
 import './ExperimentManagerUI.css';
 import NetworkProfileSelector from "./NetworkProfileSelector";
-import { fetchEncoders, fetchVideoSources, fetchEncoderById } from './api'; // Import the new function
+import { fetchEncoders, fetchVideoSources, fetchEncoderById } from './api';
 import { AvatarIcon } from '@radix-ui/react-icons';
 import {
     createExperimentCall,
@@ -64,7 +64,7 @@ export default function ExperimentManagerUI() {
     const [videoOptions, setVideoOptions] = useState([]);
 
     const metricsOptions = ['PSNR', 'SSIM', 'VMAF', 'Bitrate', 'Latency'];
-    const statusOptions = ['Pending', 'Running', 'Completed', 'Failed'];
+    const statusOptions = ['Pending'];
 
     useEffect(() => {
         const loadData = async () => {
@@ -185,8 +185,8 @@ export default function ExperimentManagerUI() {
             Description: formData.description,
             status: "PENDING",
             Sequences: [{
-                NetworkTopologyId: 0, // Confirm if this should be dynamic
-                NetworkDisruptionProfileId: parseInt(formData.networkConditions.network_profile_id) || 0,
+                NetworkTopologyId: 1, // Confirm if this should be dynamic
+                NetworkDisruptionProfileId: parseInt(formData.networkConditions.network_profile_id) || 1,
                 EncodingParameters: {
                     id: formData.encodingParameters.id,
                     name: formData.encodingParameters.name,
@@ -207,14 +207,18 @@ export default function ExperimentManagerUI() {
                     ResWidth: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[0]) : 1920,  // parsed from video resolution
                     ResHeight: selectedVideo.resolution ? parseInt(selectedVideo.resolution.split('x')[1]) : 1080, // parsed from video resolution
                     OutputFile: "ID_1_encoded.yuv",                             // static placeholder, replace dynamically later
-                    Encoder: formData.encodingParameters.name || "H264",        // from selected encoder
-                    EncoderType: formData.encodingParameters.encoderType || "Standard", // from encoding parameters
+                    Encoder: formData.encodingParameters.encoderType || "H264",        // from selected encoder
+                    EncoderType: "Standard", // from encoding parameters
                     Bitrate: selectedVideo.bitrate || 45020,                    // use 45020 if not available
                     YuvFormat: selectedVideo.yuvFormat || "4:0:0",              // use "4:0:0" if not available
                     EncoderMode: formData.encodingParameters.encoderMode || "RANDOM ACCESS", // from encoding parameters or default
                     Quality: selectedVideo.quality || 27,                       // use 27 if not available
                     BitDepth: selectedVideo.bitDepth || 12,                     // use 12 if not available
+                    Depth: selectedVideo.bitDepth ||12, // added in
                     IntraPeriod: selectedVideo.intraPeriod || 1,                // use 1 if not available
+                    QPISlice: 24, // added in
+                    QPBSlice: 24, // added in
+                    QPPSlice: 24, // added in
                     BFrames: selectedVideo.bFrames || 2,                        // use 2 if not available
                 },
                 SequenceId: 14, // Confirm if this should be dynamic
